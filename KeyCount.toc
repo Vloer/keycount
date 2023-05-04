@@ -1,0 +1,10 @@
+## Interface: 100100
+## Title: KeyCount
+## Author: Klanx
+## Version: 0.0.1
+## SavedVariables: KeyCountDB
+
+KeyCount.lua
+Defaults.lua
+SlashCommands.lua
+Utils.lua
