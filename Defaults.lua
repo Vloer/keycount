@@ -1,14 +1,14 @@
 local colors = {
-    red = "|cffff3333",
-    green = "|cff00ff00",
-    yellow = "|cffcccc00",
-    blue = "|cff0000ff",
-    magenta = "|cffff00ff",
-    cyan = "|cff00e5e5",
-    orange = "|cffffa700",
-    yellow2 = "|cfffff400",
-    lightgreen = "|cffa3ff00",
-    darkgreen = "|cff2cba00",
+    red = { chat = "|cffff3333", rgb = { r = 255, g = 51, b = 51, a = 1 } },
+    green = { chat = "|cff00ff00", rgb = { r = 0, g = 0, b = 0, a = 1 } },
+    yellow = { chat = "|cffcccc00", rgb = { r = 204, g = 204, b = 0, a = 1 } },
+    blue = { chat = "|cff0000ff", rgb = { r = 0, g = 0, b = 255, a = 1 } },
+    magenta = { chat = "|cffff00ff", rgb = { r = 255, g = 0, b = 255, a = 1 } },
+    cyan = { chat = "|cff00e5e5", rgb = { r = 0, g = 229, b = 229, a = 1 } },
+    orange = { chat = "|cffffa700", rgb = { r = 255, g = 167, b = 0, a = 1 } },
+    yellow2 = { chat = "|cfffff400", rgb = { r = 255, g = 244, b = 0, a = 1 } },
+    lightgreen = { chat = "|cffa3ff00", rgb = { r = 163, g = 255, b = 0, a = 1 } },
+    darkgreen = { chat = "|cff2cba00", rgb = { r = 44, g = 186, b = 0, a = 1 } },
     reset = "|r"
 }
 local seasons = {
@@ -51,24 +51,32 @@ Defaults = {
         totalDeaths = 0,
         keyDetails = {
             level = 0,
-            affixes = {}
+            affixes = {},
+            timeLimit = 0,
         },
-        timeLimit = 0,
         date = ""
     },
     colors = {
-        chatAnnounce = colors.cyan,
-        chatWarning = colors.yellow,
-        chatError = colors.red,
-        chatSuccess = colors.green,
+        chatAnnounce = colors.cyan.chat,
+        chatWarning = colors.yellow.chat,
+        chatError = colors.red.chat,
+        chatSuccess = colors.green.chat,
+        chatRating = {
+            colors.red.chat,
+            colors.orange.chat,
+            colors.yellow2.chat,
+            colors.lightgreen.chat,
+            colors.darkgreen.chat,
+        },
         rating = {
-            colors.red,
-            colors.orange,
-            colors.yellow2,
-            colors.lightgreen,
-            colors.darkgreen
+            colors.red.rgb,
+            colors.orange.rgb,
+            colors.yellow2.rgb,
+            colors.lightgreen.rgb,
+            colors.darkgreen.rgb,
         }
     },
     dateFormat = "%Y-%m-%d",
-    dateTimeFormat = "%Y-%m-%d %H:%M:%S"
+    dateTimeFormat = "%Y-%m-%d %H:%M:%S",
+    guiDefaultFilterType = "list"
 }

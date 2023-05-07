@@ -1,1 +1,7 @@
 package-as: KeyCount
+externals:
+    Libs/lib-st: 
+        url: https://github.com/ddumont/lib-st.git
+        tag: latest
+license-output: LICENSE.txt
+enable-nolib-creation: no

@@ -1,4 +1,3 @@
---globals
 AddonName = "KeyCount"
 KeyCount = CreateFrame("Frame", "KeyCount")
 
@@ -65,7 +64,44 @@ function KeyCount:COMBAT_LOG_EVENT_UNFILTERED()
     end
 end
 
--- Key related functions
+-- Register events
+function KeyCount:AddDungeonEvents()
+    KeyCount:RegisterEvent("CHALLENGE_MODE_COMPLETED")
+    KeyCount:RegisterEvent("GROUP_ROSTER_UPDATE")
+    KeyCount:RegisterEvent("GROUP_LEFT")
+    KeyCount:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+end
+
+function KeyCount:RemoveDungeonEvents()
+    KeyCount:UnregisterEvent("CHALLENGE_MODE_COMPLETED")
+    KeyCount:UnregisterEvent("GROUP_ROSTER_UPDATE")
+    KeyCount:UnregisterEvent("GROUP_LEFT")
+    KeyCount:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+end
+
+KeyCount:RegisterEvent("PLAYER_LOGOUT")
+KeyCount:RegisterEvent("ADDON_LOADED")
+KeyCount:RegisterEvent("ZONE_CHANGED_NEW_AREA")
+KeyCount:RegisterEvent("CHALLENGE_MODE_START")
+KeyCount:SetScript("OnEvent", KeyCount.OnEvent)
+
+function KeyCount:InitSelf()
+    Log("Called InitSelf")
+    self.party = self.party or {}
+    self.current = self.current or table.copy({}, Defaults.dungeonDefault)
+    self.dungeons = self.dungeons or {}
+    KeyCountDB = KeyCountDB or {}
+    KeyCountDB.current = KeyCountDB.current or {}
+    KeyCountDB.dungeons = KeyCountDB.dungeons or {}
+    PreviousRunsDB = PreviousRunsDB or {}
+    if KeyCountDB.keystoneActive then self.keystoneActive = true else self.keystoneActive = false end
+    if not table.equal(KeyCountDB.current, Defaults.dungeonDefault) and self.keystoneActive then
+        Log("Setting current dungeon to value from DB")
+        table.copy(self.current, KeyCountDB.current)
+    end
+    Log("Finished InitSelf")
+end
+
 function KeyCount:CheckIfInDungeon()
     Log("Called CheckIfInDungeon")
     -- For some reason dalaran has maptype dungeon
@@ -112,7 +148,7 @@ function KeyCount:SetKeyStart()
     self.current.startedTimestamp = time()
     self.current.party = GetPartyMemberInfo()
     self.current.keyDetails.affixes = {}
-    self.current.timeLimit = timeLimit
+    self.current.keyDetails.timeLimit = timeLimit
     self.current.name = name
     if self.current.player == "" then self.current.player = UnitName("player") end
     for _, affixID in ipairs(activeAffixIDs) do
@@ -154,11 +190,39 @@ function KeyCount:SetKeyEnd()
     self.current.completedInTime = onTime
     self.current.time = totalTime
     self.current.totalDeaths = SumTbl(self.current.deaths) or 0
-    if self.current.timeLimit == 0 then
-        _, _, self.current.timeLimit = C_ChallengeMode.GetMapUIInfo(mapChallengeModeID)
+    if self.current.keyDetails.timeLimit == 0 then
+        _, _, self.current.keyDetails.timeLimit = C_ChallengeMode.GetMapUIInfo(mapChallengeModeID)
     end
     KeyCount:FinishDungeon()
     Log("Finished SetKeyEnd")
+end
+
+function KeyCount:FinishDungeon()
+    Log("Called FinishDungeon")
+    self.keystoneActive = false
+    KeyCountDB.keystoneActive = false
+    KeyCount:SetTimeToComplete()
+    Log(string.format("Key %s %s %s", self.current.name, self.current.keyDetails.level, self.current.timeToComplete))
+    KeyCount:SaveAndReset()
+    KeyCount:RemoveDungeonEvents()
+    Log("Finished FinishDungeon")
+end
+
+function KeyCount:SetTimeToComplete()
+    self.current.date = date(Defaults.dateFormat)
+    if self.current.time == 0 then
+        local timeStart = self.current.startedTimestamp
+        local timeEnd = self.current.completedTimestamp
+        if timeEnd == 0 then
+            timeEnd = time()
+        end
+        local timeLost = select(2, C_ChallengeMode.GetDeathCount())
+        if self.current.totalDeaths > 0 and timeLost == 0 then
+            timeLost = self.current.totalDeaths * 5
+        end
+        self.current.time = timeEnd - timeStart + timeLost
+    end
+    self.current.timeToComplete = FormatTimestamp(self.current.time)
 end
 
 function KeyCount:SaveAndReset()
@@ -171,15 +235,15 @@ function KeyCount:SaveAndReset()
     Log("Finished SaveAndReset")
 end
 
-function KeyCount:FinishDungeon()
-    Log("Called FinishDungeon")
-    self.keystoneActive = false
-    KeyCountDB.keystoneActive = false
-    KeyCount:SetTimeToComplete()
-    Log(string.format("Key %s %s %s", self.current.name, self.current.keyDetails.level, self.current.timeToComplete))
-    KeyCount:SaveAndReset()
-    KeyCount:RemoveDungeonEvents()
-    Log("Finished FinishDungeon")
+function KeyCount:SaveDungeons()
+    for _, dungeon in ipairs(self.dungeons) do
+        local name = dungeon.name or ""
+        local details = dungeon.keyDetails or {}
+        local level = details.level or 0
+        printf(string.format("Inserting %s %s", name, level))
+        table.insert(KeyCountDB.dungeons, dungeon)
+    end
+    self.dungeons = {}
 end
 
 -- Game related functions
@@ -210,149 +274,4 @@ function GetPlayerInfo()
     local name = UnitName("player")
     local class = UnitClass("player")
     return { name = name, class = class, role = specRole }
-end
-
--- Register events
-function KeyCount:AddDungeonEvents()
-    KeyCount:RegisterEvent("CHALLENGE_MODE_COMPLETED")
-    KeyCount:RegisterEvent("GROUP_ROSTER_UPDATE")
-    KeyCount:RegisterEvent("GROUP_LEFT")
-    KeyCount:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
-end
-
-function KeyCount:RemoveDungeonEvents()
-    KeyCount:UnregisterEvent("CHALLENGE_MODE_COMPLETED")
-    KeyCount:UnregisterEvent("GROUP_ROSTER_UPDATE")
-    KeyCount:UnregisterEvent("GROUP_LEFT")
-    KeyCount:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
-end
-
-KeyCount:RegisterEvent("PLAYER_LOGOUT")
-KeyCount:RegisterEvent("ADDON_LOADED")
-KeyCount:RegisterEvent("ZONE_CHANGED_NEW_AREA")
-KeyCount:RegisterEvent("CHALLENGE_MODE_START")
-KeyCount:SetScript("OnEvent", KeyCount.OnEvent)
-
--- Utils
-function KeyCount:InitSelf()
-    Log("Called InitSelf")
-    self.party = self.party or {}
-    self.current = self.current or table.copy({}, Defaults.dungeonDefault)
-    self.dungeons = self.dungeons or {}
-    KeyCountDB = KeyCountDB or {}
-    KeyCountDB.current = KeyCountDB.current or {}
-    KeyCountDB.dungeons = KeyCountDB.dungeons or {}
-    PreviousRunsDB = PreviousRunsDB or {}
-    if KeyCountDB.keystoneActive then self.keystoneActive = true else self.keystoneActive = false end
-    if not table.equal(KeyCountDB.current, Defaults.dungeonDefault) and self.keystoneActive then
-        Log("Setting current dungeon to value from DB")
-        table.copy(self.current, KeyCountDB.current)
-    end
-    Log("Finished InitSelf")
-end
-
-function KeyCount:SetTimeToComplete()
-    self.current.date = date(Defaults.dateFormat)
-    if self.current.time == 0 then
-        local timeStart = self.current.startedTimestamp
-        local timeEnd = self.current.completedTimestamp
-        if timeEnd == 0 then
-            timeEnd = time()
-        end
-        local timeLost = select(2, C_ChallengeMode.GetDeathCount())
-        if self.current.totalDeaths > 0 and timeLost == 0 then
-            timeLost = self.current.totalDeaths * 5
-        end
-        self.current.time = timeEnd - timeStart + timeLost
-    end
-    self.current.timeToComplete = FormatTimestamp(self.current.time)
-end
-
-function ListDungeons(dungeons)
-    for i, dungeon in ipairs(dungeons) do
-        if dungeon.completedInTime then
-            printf(string.format("[%s] %d: Timed %s %d (%d deaths)", dungeon.player, i, dungeon.name,
-                dungeon.keyDetails.level, dungeon.totalDeaths), Defaults.colors.rating[5])
-        elseif dungeon.completed then
-            printf(string.format("[%s] %d: Failed to time %s %d (%d deaths)", dungeon.player, i, dungeon.name,
-                dungeon.keyDetails.level, dungeon.totalDeaths), Defaults.colors.rating[3])
-        else
-            printf(string.format("[%s] %d: Abandoned %s %d (%d deaths)", dungeon.player, i, dungeon.name,
-                dungeon.keyDetails.level, dungeon.totalDeaths), Defaults.colors.rating[1])
-        end
-    end
-end
-
-function GetDungeonSuccessRate(dungeons)
-    local res = {}
-    local resRate = {}
-    for _, dungeon in ipairs(dungeons) do
-        if not res[dungeon.name] then
-            res[dungeon.name] = {}
-            res[dungeon.name].success = 0
-            res[dungeon.name].failed = 0
-        end
-        if dungeon.completedInTime then
-            res[dungeon.name].success = (res[dungeon.name].success or 0) + 1
-        else
-            res[dungeon.name].failed = (res[dungeon.name].failed or 0) + 1
-        end
-    end
-    for name, d in pairs(res) do
-        local successRate = 0
-        if d.failed == 0 then
-            successRate = 100
-        elseif d.success == 0 then
-            successRate = 0
-        else
-            successRate = d.success / (d.success + d.failed) * 100
-        end
-        table.insert(resRate, { name = name, successRate = successRate, success = d.success, failed = d.failed })
-    end
-    table.sort(resRate, function(a, b)
-        return a.successRate > b.successRate
-    end)
-    for _, d in ipairs(resRate) do
-        local colorIdx = math.floor(d.successRate / 20) + 1
-        local fmt = Defaults.colors.rating[colorIdx]
-        printf(string.format("%s: %.2f%% [%d/%d]", d.name, d.successRate, d.success, d.success + d.failed), fmt)
-    end
-end
-
-function GetPLayerList(dungeons)
-    dungeons = dungeons or KeyCountDB.dungeons
-    local pl = {}
-    for _, d in ipairs(dungeons) do
-        local player = d.player
-        for _, p in ipairs(pl) do
-            local found = false
-            if p == player then
-                found = true
-                break
-            end
-            if not found then
-                table.insert(pl, player)
-            end
-        end
-    end
-    return pl
-end
-
-function GetStoredDungeons()
-    if not KeyCountDB or next(KeyCountDB) == nil or next(KeyCountDB.dungeons) == nil then
-        printf("No dungeons stored.", Defaults.colors.chatError)
-        return nil
-    end
-    return KeyCountDB.dungeons
-end
-
-function KeyCount:SaveDungeons()
-    for _, dungeon in ipairs(self.dungeons) do
-        local name = dungeon.name or ""
-        local details = dungeon.keyDetails or {}
-        local level = details.level or 0
-        printf(string.format("Inserting %s %s", name, level))
-        table.insert(KeyCountDB.dungeons, dungeon)
-    end
-    self.dungeons = {}
 end

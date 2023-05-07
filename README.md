@@ -7,9 +7,4 @@
     - Register cause of death
     - Register encounter at time of death (boss/trash)
 
-## Add GUI 
-
-## Add more stats
-
-## Allow filtering on multiple key/values
-    - For example player and dungeon
+## Add more stats/panels to GUI
