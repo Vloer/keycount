@@ -3,6 +3,6 @@ externals:
     Libs/lib-st: 
         url: https://github.com/ddumont/lib-st.git
         tag: latest
-license-output: LICENSE.txt
+license-output: LICENSE
 enable-nolib-creation: no
 manual-changelog: CHANGELOG.txt
