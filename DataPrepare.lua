@@ -1,22 +1,20 @@
 local function getPlayerRoleAndColor(dungeon)
-    for _, i in ipairs(dungeon.party) do
-        if i.name == dungeon.player then
-            local _class = i.class
-            local classUppercase = string.upper(_class)
-            local class = string.gsub(classUppercase, " ", "")
-            local tbl = RAID_CLASS_COLORS[class]
-            local color = { r = tbl.r, g = tbl.g, b = tbl.b, a = 1 }
-            local role = i.role
-            if role == "TANK" then
-                role = "Tank"
-            elseif role == "DAMAGER" then
-                role = "DPS"
-            else
-                role = "Heal"
-            end
-            return { color = color, hex = tbl.colorStr, role = role }
-        end
+    local party = ConvertOldPartyFormat(dungeon.party)
+    local player = party[dungeon.player]
+    local _class = player.class
+    local classUppercase = string.upper(_class)
+    local class = string.gsub(classUppercase, " ", "")
+    local tbl = RAID_CLASS_COLORS[class]
+    local color = { r = tbl.r, g = tbl.g, b = tbl.b, a = 1 }
+    local role = player.role
+    if role == "TANK" then
+        role = "Tank"
+    elseif role == "DAMAGER" then
+        role = "DPS"
+    else
+        role = "Heal"
     end
+    return { color = color, hex = tbl.colorStr, role = role }
 end
 
 local function getLevelColor(level)
@@ -42,14 +40,14 @@ end
 local function getDeathsColor(deaths)
     if deaths == 0 then return ConvertRgb(Defaults.colors.rating[5]) end
     local idx = math.floor(6 - deaths / 4)
-    if idx == 0 then idx = 1 end --happens on 0.5
+    if idx <= 0 then idx = 1 end --happens on 0.5
     return ConvertRgb(Defaults.colors.rating[idx])
 end
 
 local function getSuccessRateColor(rate)
     if rate == 0 then return ConvertRgb(Defaults.colors.rating[1]) end
     local idx = math.floor(rate / 20) + 1
-    if idx == 0 then idx = 1 end --happens on 0.5
+    if idx <= 0 then idx = 1 end --happens on 0.5
     return ConvertRgb(Defaults.colors.rating[idx])
 end
 
@@ -64,8 +62,12 @@ local function prepareRowList(dungeon)
     local affixes = ConcatTable(dungeon.keyDetails.affixes, ", ")
 
     local p = getPlayerRoleAndColor(dungeon)
-    local playerString = string.format("(%s) %s", p.role, player)
-    table.insert(row, { value = playerString, color = p.color })
+    if p then
+        local playerString = string.format("(%s) %s", p.role, player)
+        table.insert(row, { value = playerString, color = p.color })
+    else
+        table.insert(row, { value = player })
+    end
     table.insert(row, { value = name })
     table.insert(row, { value = level, color = getLevelColor(level).color })
     table.insert(row, { value = result.result, color = result.color })
@@ -115,4 +117,14 @@ PrepareData = {
     list = prepareList,
     filter = prepareList,
     rate = prepareRate
+}
+
+old = {
+    { name = 1, class = 2 },
+    { name = 3, class = 4 }
+}
+
+new = {
+    ["a"] = { name = 1, class = 2 },
+    ["b"] = { name = 3, class = 4 }
 }

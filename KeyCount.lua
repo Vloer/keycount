@@ -247,31 +247,31 @@ function KeyCount:SaveDungeons()
 end
 
 -- Game related functions
-function GetPartyMemberInfo(printOutput)
-    printOutput = printOutput or false
-    local partyMemberInfo = {}
+function GetPartyMemberInfo()
+    local info = {}
     local numGroupMembers = GetNumGroupMembers()
     if numGroupMembers == 0 then
-        partyMemberInfo[1] = GetPlayerInfo()
+        info = GetPlayerInfo()
     else
         for i = 1, numGroupMembers do
             local name, _, _, _, class, _, _, _, _, _, _, role = GetRaidRosterInfo(i)
-            partyMemberInfo[i] = { name = name, class = class, role = role }
+            info[name] = { name = name, class = class, role = role }
         end
     end
-    if printOutput then
-        Log("Party:")
-        for i, item in ipairs(partyMemberInfo) do
-            Log("    " .. item.name .. ": " .. item.class .. " " .. item.role)
-        end
-    end
-    return partyMemberInfo
+    return info
 end
 
 function GetPlayerInfo()
     local specIndex = GetSpecialization()
-    local _, _, _, _, specRole = GetSpecializationInfo(specIndex)
+    local _, spec, _, _, specRole = GetSpecializationInfo(specIndex)
     local name = UnitName("player")
     local class = UnitClass("player")
-    return { name = name, class = class, role = specRole }
+    local info = {}
+    info[name] = {
+        class = class,
+        role = specRole,
+        spec = spec,
+        name = name
+    }
+    return info
 end

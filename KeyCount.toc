@@ -1,7 +1,7 @@
 ## Interface: 100100
 ## Title: KeyCount
 ## Author: Vloer
-## Version: 0.4
+## Version: @project-version@
 ## SavedVariables: KeyCountDB
 
 Libs\LibStub\LibStub.lua

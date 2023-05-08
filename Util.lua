@@ -94,3 +94,15 @@ function ConcatTable(table, delimiter)
     end
     return concatenatedString
 end
+
+function ConvertOldPartyFormat(party)
+    local _party = {}
+    for k, v in pairs(party) do
+        if type(k) == "number" then
+            _party[v.name] = v
+        else
+            _party[k] = v
+        end
+    end
+    return _party
+end
