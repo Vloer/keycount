@@ -18,9 +18,9 @@ end
 
 function KeyCount:ADDON_LOADED(event, addonName)
     if addonName == AddonName then
+        KeyCount:InitSelf()
         KeyCountDB.sessions = (KeyCountDB.sessions or 0) + 1
         print(string.format("Loaded %s for the %dth time.", addonName, KeyCountDB.sessions))
-        KeyCount:InitSelf()
     end
 end
 
