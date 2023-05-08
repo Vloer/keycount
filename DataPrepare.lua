@@ -62,12 +62,8 @@ local function prepareRowList(dungeon)
     local affixes = ConcatTable(dungeon.keyDetails.affixes, ", ")
 
     local p = getPlayerRoleAndColor(dungeon)
-    if p then
-        local playerString = string.format("(%s) %s", p.role, player)
-        table.insert(row, { value = playerString, color = p.color })
-    else
-        table.insert(row, { value = player })
-    end
+    local playerString = string.format("(%s) %s", p.role, player)
+    table.insert(row, { value = playerString, color = p.color })
     table.insert(row, { value = name })
     table.insert(row, { value = level, color = getLevelColor(level).color })
     table.insert(row, { value = result.result, color = result.color })
@@ -117,14 +113,4 @@ PrepareData = {
     list = prepareList,
     filter = prepareList,
     rate = prepareRate
-}
-
-old = {
-    { name = 1, class = 2 },
-    { name = 3, class = 4 }
-}
-
-new = {
-    ["a"] = { name = 1, class = 2 },
-    ["b"] = { name = 3, class = 4 }
 }
