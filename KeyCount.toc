@@ -1,14 +1,14 @@
 ## Interface: 100100
-## Title: KeyCount_dev
-## Author: Klanx
-## Version: 0.0.1
+## Title: KeyCount
+## Author: Vloer
+## Version: 0.4
 ## SavedVariables: KeyCountDB
 
 Libs\LibStub\LibStub.lua
 Libs\AceGUI-3.0\AceGUI-3.0.xml
 Libs\lib-st\lib-st.xml
 
-KeyCount_dev.lua
+KeyCount.lua
 Defaults.lua
 SlashCommands.lua
 Util.lua
