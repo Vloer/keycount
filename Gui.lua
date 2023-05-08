@@ -5,6 +5,19 @@ function GUI:ConstructGUI()
     self.filtertype = Defaults.guiDefaultFilterType
     self.widgets = {}
     self.tables = {}
+
+    local function disableWidgets(setting)
+        for _, w in pairs(self.widgets) do
+            w:SetDisabled(setting)
+            w:SetText("")
+        end
+    end
+
+    local function setBoxText()
+        self.widgets.editboxKey:SetText(self.key)
+        self.widgets.editboxVal:SetText(self.value)
+    end
+
     local fillTable = function()
         local dungs = FilterFunc[self.filtertype](self.key, self.value)
         if not dungs then return end
@@ -20,20 +33,14 @@ function GUI:ConstructGUI()
             self.tables.stL:SetData(data)
             self.tables.stL:Refresh()
         end
-    end
-
-    local function disableWidgets(setting)
-        for _, w in pairs(self.widgets) do
-            w:SetDisabled(setting)
-            w:SetText("")
-        end
+        setBoxText()
     end
 
     AceGUI = LibStub("AceGUI-3.0")
     local frame = AceGUI:Create("Frame")
     frame:SetTitle("KeyCount")
     frame:SetStatusText("Retrieve some data for your mythic+ runs!")
-    frame:SetWidth(750)
+    frame:SetWidth(770)
     frame:SetHeight(420)
     frame:SetCallback("OnClose", function(widget) AceGUI:Release(widget) end)
     frame:SetLayout("Flow")
@@ -54,6 +61,7 @@ function GUI:ConstructGUI()
             self.value = ""
         else
             disableWidgets(false)
+            setBoxText()
             if item == "filter" then
                 self.tables.stL:Show()
                 self.tables.stR:Hide()
@@ -95,6 +103,7 @@ function GUI:ConstructGUI()
         { ["name"] = "Level",   ["width"] = 55, },
         { ["name"] = "Result",  ["width"] = 90, },
         { ["name"] = "Deaths",  ["width"] = 55,  ["defaultsort"] = "dsc" },
+        { ["name"] = "Time",    ["width"] = 55, },
         { ["name"] = "Affixes", ["width"] = 200, },
     }
     local columnsRate = {

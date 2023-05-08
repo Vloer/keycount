@@ -25,13 +25,18 @@ This addon is still in beta development, but you can already download it from cu
     - Other player leaves and rejoins party during active challenge mode
     - Other player leaves party but dungeon is still finished
 
+## Do reset addon when:
+    - Player logs out and into another character
+      - Edge case: they need to send over mats so they log back in and continue the dungeon
+    - Log out indefinitely
+
 ## Improve death recording
     - Register cause of death
     - Register encounter at time of death (boss/trash) with timestamp
 
 ## GUI
     - Add dropdown for filter keys
-    - BUG: changing filter types between rate and filter clears the input field, but retains the key/value information
+      - This would deprecate the logic required to use a dungeon abbreviation as key, but only for the gui
 
 ## Notes section
     - At the end of a failed run ask player for a note on that run (popup?)
@@ -39,5 +44,10 @@ This addon is still in beta development, but you can already download it from cu
     - Add 'notes' column to gui (with mouseover or side scrollable)
 
 ## Data filter
-    - BUG: filtering by date doesn't work
-    - Add selection for data over all seasons
+    - Add role filter
+
+## Data storage
+    - Restructure party data
+      - One table entry per player, with the player name as key
+      - Store additional information in the player table
+    - Make new data structure backwards compatible

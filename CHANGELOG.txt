@@ -1,1 +1,5 @@
-Updated author and version
+- Fixed bug where key/values would disappear after changing filtering screens
+- Added date filter and 'all' keyword for season filter
+- Added time column to all data
+- Added player class colors to GUI
+- Added player role to GUI (will change to icon later)
