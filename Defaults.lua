@@ -37,7 +37,7 @@ Defaults = {
         VP = "Vortex Pinnacle"
     },
     dungeonDefault = {
-        season = seasons.Dragonflight[1],
+        season = seasons.Dragonflight[2],
         player = "",
         name = "",
         party = {},

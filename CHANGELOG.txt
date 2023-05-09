@@ -1,2 +1,1 @@
-- Fixed bug where addon would bug out on runs with over ~30 deaths
-- Refactored party structure to be able to hold more data, and easier filter on role later
+- Updated current season to dragonflight-2
