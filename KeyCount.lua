@@ -1,4 +1,4 @@
-AddonName = "KeyCount_dev"
+AddonName = "KeyCount"
 KeyCount = CreateFrame("Frame", "KeyCount")
 
 
@@ -93,7 +93,6 @@ function KeyCount:InitSelf()
     KeyCountDB = KeyCountDB or {}
     KeyCountDB.current = KeyCountDB.current or {}
     KeyCountDB.dungeons = KeyCountDB.dungeons or {}
-    PreviousRunsDB = PreviousRunsDB or {}
     if KeyCountDB.keystoneActive then self.keystoneActive = true else self.keystoneActive = false end
     if not table.equal(KeyCountDB.current, Defaults.dungeonDefault) and self.keystoneActive then
         Log("Setting current dungeon to value from DB")
