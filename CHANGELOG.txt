@@ -1,1 +1,2 @@
 - Updated current season to dragonflight-2
+- Fixed bug causing the addon not to work (wrong global variable)
