@@ -37,6 +37,11 @@ This addon is still in beta development, but you can already download it from cu
 ## GUI
     - Add dropdown for filter keys
       - This would deprecate the logic required to use a dungeon abbreviation as key, but only for the gui
+    - Add option tickboxes to show specific columns
+      - Note, affixes, party, details stuff
+    - Make GUI side scrollable if it gets too large?
+    - Add role icons instead of text
+    - If showing details stuff design it in a readable way
 
 ## Notes section
     - At the end of a failed run ask player for a note on that run (popup?)
@@ -47,7 +52,7 @@ This addon is still in beta development, but you can already download it from cu
     - Add role filter
 
 ## Data storage
-    - Restructure party data
-      - One table entry per player, with the player name as key
-      - Store additional information in the player table
-    - Make new data structure backwards compatible
+    - Include details data about partymembers
+      - Overall dps
+      - Overall hps
+      - Interrupts
