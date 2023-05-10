@@ -1,6 +1,4 @@
-AddonName = "KeyCount"
 KeyCount = CreateFrame("Frame", "KeyCount")
-
 
 -- Event behaviour
 function KeyCount:OnEvent(event, ...)
@@ -17,7 +15,7 @@ function KeyCount:PLAYER_LOGOUT(event)
 end
 
 function KeyCount:ADDON_LOADED(event, addonName)
-    if addonName == AddonName then
+    if addonName == "KeyCount" then
         KeyCount:InitSelf()
         KeyCountDB.sessions = (KeyCountDB.sessions or 0) + 1
         print(string.format("Loaded %s for the %dth time.", addonName, KeyCountDB.sessions))
@@ -93,6 +91,7 @@ function KeyCount:InitSelf()
     KeyCountDB = KeyCountDB or {}
     KeyCountDB.current = KeyCountDB.current or {}
     KeyCountDB.dungeons = KeyCountDB.dungeons or {}
+    PreviousRunsDB = PreviousRunsDB or {}
     if KeyCountDB.keystoneActive then self.keystoneActive = true else self.keystoneActive = false end
     if not table.equal(KeyCountDB.current, Defaults.dungeonDefault) and self.keystoneActive then
         Log("Setting current dungeon to value from DB")
