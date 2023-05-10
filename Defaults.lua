@@ -78,5 +78,8 @@ Defaults = {
     },
     dateFormat = "%Y-%m-%d",
     dateTimeFormat = "%Y-%m-%d %H:%M:%S",
-    guiDefaultFilterType = "list"
+    gui = {
+        filterType = "list",
+        filter = "alldata"
+    }
 }

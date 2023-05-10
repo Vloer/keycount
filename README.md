@@ -35,8 +35,6 @@ This addon is still in beta development, but you can already download it from cu
     - Register encounter at time of death (boss/trash) with timestamp
 
 ## GUI
-    - Add dropdown for filter keys
-      - This would deprecate the logic required to use a dungeon abbreviation as key, but only for the gui
     - Add option tickboxes to show specific columns
       - Note, affixes, party, details stuff
     - Make GUI side scrollable if it gets too large?

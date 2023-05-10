@@ -1,2 +1,3 @@
-- Updated current season to dragonflight-2
-- Fixed bug causing the addon not to work (wrong global variable)
+- Added dropdown for available filters
+- Added "out of time" and "abandoned" filter
+- Minor GUI bug fixes

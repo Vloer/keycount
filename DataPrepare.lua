@@ -38,16 +38,26 @@ local function getResultString(dungeon)
 end
 
 local function getDeathsColor(deaths)
-    if deaths == 0 then return ConvertRgb(Defaults.colors.rating[5]) end
-    local idx = math.floor(6 - deaths / 4)
-    if idx <= 0 then idx = 1 end --happens on 0.5
+    local idx
+    if deaths == 0 then
+        idx = 5
+    else
+        idx = math.floor(6 - deaths / 4)
+        if idx <= 0 then idx = 1 end
+    end
     return ConvertRgb(Defaults.colors.rating[idx])
 end
 
 local function getSuccessRateColor(rate)
-    if rate == 0 then return ConvertRgb(Defaults.colors.rating[1]) end
-    local idx = math.floor(rate / 20) + 1
-    if idx <= 0 then idx = 1 end --happens on 0.5
+    local idx
+    if rate == 0 then
+        idx = 1
+    elseif rate == 100 then
+        idx = 5
+    else
+        idx = math.floor(rate / 20) + 1
+        if idx <= 0 then idx = 1 end
+    end
     return ConvertRgb(Defaults.colors.rating[idx])
 end
 

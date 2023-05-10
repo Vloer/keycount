@@ -1,24 +1,42 @@
 GUI = {}
 function GUI:ConstructGUI()
-    self.key = ""
-    self.value = ""
-    self.filtertype = Defaults.guiDefaultFilterType
     self.widgets = {}
     self.tables = {}
+    self.boxes = {}
+    local AceGUI = LibStub("AceGUI-3.0")
 
-    local function disableWidgets(setting)
-        for _, w in pairs(self.widgets) do
-            w:SetDisabled(setting)
-            w:SetText("")
+    local function resetFilters()
+        self.key = ""
+        self.value = ""
+        self.previousValue = ""
+        self.filter = FilterKeys[Defaults.gui.filter]
+        self.filtertype = Defaults.gui.filterType
+    end
+
+    resetFilters()
+
+    local function disableFilters(setting)
+        self.boxes.filterKey:SetDisabled(setting)
+        self.boxes.filterKey:SetText("")
+        self.widgets.filterValue:SetDisabled(setting)
+        self.widgets.filterValue:SetText("")
+    end
+
+    local function setFilterKeyValue()
+        self.boxes.filterKey:SetText(self.filter.name)
+        self.boxes.filterKey:SetValue(self.filter.key)
+        if self.value == "" and self.previousValue ~= "" and self.filter.key ~= "player" then
+            self.value = self.previousValue
         end
+        self.widgets.filterValue:SetText(self.value)
     end
 
-    local function setBoxText()
-        self.widgets.editboxKey:SetText(self.key)
-        self.widgets.editboxVal:SetText(self.value)
+    local function resetFilterValue()
+        self.widgets.filterValue:SetText("")
+        self.value = ""
     end
 
-    local fillTable = function()
+    local function fillTable()
         local dungs = FilterFunc[self.filtertype](self.key, self.value)
         if not dungs then return end
         local data = PrepareData[self.filtertype](dungs)
@@ -33,65 +51,92 @@ function GUI:ConstructGUI()
             self.tables.stL:SetData(data)
             self.tables.stL:Refresh()
         end
-        setBoxText()
     end
 
-    AceGUI = LibStub("AceGUI-3.0")
+    local function c_FilterType(item)
+        self.filtertype = item
+        if self.filtertype == "list" then
+            disableFilters(true)
+            self.tables.stR:Hide()
+            self.tables.stL:Show()
+        else
+            disableFilters(false)
+            setFilterKeyValue()
+            self.key = self.filter.value
+            if self.filtertype == "filter" then
+                self.tables.stR:Hide()
+                self.tables.stL:Show()
+            else --rate
+                self.tables.stL:Hide()
+                self.tables.stR:Show()
+            end
+        end
+    end
+
+    local function c_FilterKey(item)
+        self.filter = FilterKeys[item]
+        self.boxes.filterKey:SetText(self.filter.name)
+        self.key = self.filter.value
+        resetFilterValue()
+    end
+
+    local function c_FilterValue(text)
+        self.value = text
+    end
+
+    local function c_ShowData()
+        if self.filtertype == "list" then
+            self.previousValue = self.value
+            self.key = ""
+            self.value = ""
+        else
+            setFilterKeyValue()
+        end
+        fillTable()
+    end
+
     local frame = AceGUI:Create("Frame")
     frame:SetTitle("KeyCount")
     frame:SetStatusText("Retrieve some data for your mythic+ runs!")
     frame:SetWidth(770)
     frame:SetHeight(420)
-    frame:SetCallback("OnClose", function(widget) AceGUI:Release(widget) end)
+    frame:SetCallback("OnClose", function(widget)
+        AceGUI:Release(widget)
+        resetFilters()
+    end)
     frame:SetLayout("Flow")
 
-    local dropdownBox = AceGUI:Create("Dropdown")
-    dropdownBox:SetLabel("Filter type")
-    dropdownBox:SetWidth(100)
-    dropdownBox:AddItem("list", "All data")
-    dropdownBox:AddItem("filter", "Filter")
-    dropdownBox:AddItem("rate", "Success rate")
-    dropdownBox:SetCallback("OnValueChanged", function(widget, event, item)
-        self.filtertype = item
-        if item == "list" then
-            disableWidgets(true)
-            self.tables.stL:Show()
-            self.tables.stR:Hide()
-            self.key = ""
-            self.value = ""
-        else
-            disableWidgets(false)
-            setBoxText()
-            if item == "filter" then
-                self.tables.stL:Show()
-                self.tables.stR:Hide()
-            elseif item == "rate" then
-                self.tables.stL:Hide()
-                self.tables.stR:Show()
-            end
-        end
-    end)
-    dropdownBox:SetValue("list")
-    frame:AddChild(dropdownBox)
+    self.boxes.filterType = AceGUI:Create("Dropdown")
+    self.boxes.filterType:SetLabel("Filter type")
+    self.boxes.filterType:SetWidth(100)
+    self.boxes.filterType:AddItem("list", "All data")
+    self.boxes.filterType:AddItem("filter", "Filter")
+    self.boxes.filterType:AddItem("rate", "Success rate")
+    self.boxes.filterType:SetCallback("OnValueChanged", function(widget, event, item) c_FilterType(item) end)
+    self.boxes.filterType:SetValue("list")
+    frame:AddChild(self.boxes.filterType)
 
-    self.widgets.editboxKey = AceGUI:Create("EditBox")
-    self.widgets.editboxKey:SetLabel("Filter key")
-    self.widgets.editboxKey:SetWidth(200)
-    self.widgets.editboxKey:SetCallback("OnEnterPressed", function(widget, event, text) self.key = text end)
-    self.widgets.editboxKey:SetDisabled(true)
-    frame:AddChild(self.widgets.editboxKey)
+    self.boxes.filterKey = AceGUI:Create("Dropdown")
+    self.boxes.filterKey:SetLabel("Filter key")
+    self.boxes.filterKey:SetWidth(200)
+    for f, v in pairs(FilterKeys) do
+        self.boxes.filterKey:AddItem(f, v.name)
+    end
+    self.boxes.filterKey:SetCallback("OnValueChanged", function(widget, event, item) c_FilterKey(item) end)
+    self.boxes.filterKey:SetDisabled(true)
+    frame:AddChild(self.boxes.filterKey)
 
-    self.widgets.editboxVal = AceGUI:Create("EditBox")
-    self.widgets.editboxVal:SetLabel("Filter value")
-    self.widgets.editboxVal:SetWidth(200)
-    self.widgets.editboxVal:SetCallback("OnEnterPressed", function(widget, event, text) self.value = text end)
-    self.widgets.editboxVal:SetDisabled(true)
-    frame:AddChild(self.widgets.editboxVal)
+    self.widgets.filterValue = AceGUI:Create("EditBox")
+    self.widgets.filterValue:SetLabel("Filter value")
+    self.widgets.filterValue:SetWidth(200)
+    self.widgets.filterValue:SetCallback("OnEnterPressed", function(widget, event, text) c_FilterValue(text) end)
+    self.widgets.filterValue:SetDisabled(true)
+    frame:AddChild(self.widgets.filterValue)
 
     local button = AceGUI:Create("Button")
     button:SetText("Show data")
     button:SetWidth(185)
-    button:SetCallback("OnClick", fillTable)
+    button:SetCallback("OnClick", c_ShowData)
     frame:AddChild(button)
 
     -- Tables
@@ -119,6 +164,7 @@ function GUI:ConstructGUI()
     self.tables.stL.frame:SetPoint("TOP", window, "TOP", 0, -100);
     self.tables.stL.frame:SetPoint("LEFT", window, "LEFT", 15, 0);
     self.tables.stL:EnableSelection(true)
+    self.tables.stL:Hide()
 
     self.tables.stR = ScrollingTable:CreateST(columnsRate, 8, 16, nil, window);
     self.tables.stR.frame:SetPoint("TOP", window, "TOP", 0, -100);
