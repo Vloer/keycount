@@ -1,3 +1,1 @@
-- Added dropdown for available filters
-- Added "out of time" and "abandoned" filter
-- Minor GUI bug fixes
+- Added role icons to GUI

@@ -1,3 +1,15 @@
+local function getRoleIcon(role)
+    if role == "DAMAGER" then
+        return "|TInterface\\AddOns\\KeyCount\\Icons\\roles:14:14:0:0:64:64:0:18:0:18|t"
+    elseif role == "HEALER" then
+        return "|TInterface\\AddOns\\KeyCount\\Icons\\roles:14:14:0:0:64:64:19:37:0:18|t"
+    elseif role == "TANK" then
+        return "|TInterface\\AddOns\\KeyCount\\Icons\\roles:14:14:0:0:64:64:38:56:0:18|t"
+    else
+        return nil
+    end
+end
+
 local function getPlayerRoleAndColor(dungeon)
     local party = ConvertOldPartyFormat(dungeon.party)
     local player = party[dungeon.player]
@@ -7,6 +19,7 @@ local function getPlayerRoleAndColor(dungeon)
     local tbl = RAID_CLASS_COLORS[class]
     local color = { r = tbl.r, g = tbl.g, b = tbl.b, a = 1 }
     local role = player.role
+    local roleIcon = getRoleIcon(role)
     if role == "TANK" then
         role = "Tank"
     elseif role == "DAMAGER" then
@@ -14,7 +27,7 @@ local function getPlayerRoleAndColor(dungeon)
     else
         role = "Heal"
     end
-    return { color = color, hex = tbl.colorStr, role = role }
+    return { color = color, hex = tbl.colorStr, role = role, roleIcon = roleIcon }
 end
 
 local function getLevelColor(level)
@@ -61,6 +74,8 @@ local function getSuccessRateColor(rate)
     return ConvertRgb(Defaults.colors.rating[idx])
 end
 
+
+
 local function prepareRowList(dungeon)
     local row = {}
     local player = dungeon.player
@@ -72,7 +87,7 @@ local function prepareRowList(dungeon)
     local affixes = ConcatTable(dungeon.keyDetails.affixes, ", ")
 
     local p = getPlayerRoleAndColor(dungeon)
-    local playerString = string.format("(%s) %s", p.role, player)
+    local playerString = string.format("%s%s", p.roleIcon, player)
     table.insert(row, { value = playerString, color = p.color })
     table.insert(row, { value = name })
     table.insert(row, { value = level, color = getLevelColor(level).color })
