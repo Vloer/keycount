@@ -38,7 +38,6 @@ This addon is still in beta development, but you can already download it from cu
     - Add option tickboxes to show specific columns
       - Note, affixes, party, details stuff
     - Make GUI side scrollable if it gets too large?
-    - Add role icons instead of text
     - If showing details stuff design it in a readable way
 
 ## Notes section
