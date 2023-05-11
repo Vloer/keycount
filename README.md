@@ -53,3 +53,8 @@ This addon is still in beta development, but you can already download it from cu
       - Overall dps
       - Overall hps
       - Interrupts
+
+## Export
+    - Create CSV format converter
+      - Create a popup that holds the csv data so you can load it into external programs
+    - Export success rate to chat

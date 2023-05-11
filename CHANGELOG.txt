@@ -1,1 +1,3 @@
-- Added role icons to GUI
+- Added date column to gui
+- Changed date storage format (now stores date, datetime, human readable date string)
+- Removed buggy setting that reset filter value to a previous value

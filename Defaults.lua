@@ -54,7 +54,7 @@ Defaults = {
             affixes = {},
             timeLimit = 0,
         },
-        date = ""
+        date = { ["date"] = "", ["datestring"] = "", ["datetime"] = "" }
     },
     colors = {
         chatAnnounce = colors.cyan.chat,
@@ -77,9 +77,10 @@ Defaults = {
         }
     },
     dateFormat = "%Y-%m-%d",
-    dateTimeFormat = "%Y-%m-%d %H:%M:%S",
+    datetimeFormat = "%Y-%m-%d %H:%M:%S",
     gui = {
         filterType = "list",
         filter = "alldata"
-    }
+    },
+    filter = { key = "alldata", value = "" }
 }

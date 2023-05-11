@@ -207,7 +207,7 @@ function KeyCount:FinishDungeon()
 end
 
 function KeyCount:SetTimeToComplete()
-    self.current.date = date(Defaults.dateFormat)
+    self.current.date = {date = date(Defaults.dateFormat), datestring = date(), datetime = date(Defaults.datetimeFormat)}
     if self.current.time == 0 then
         local timeStart = self.current.startedTimestamp
         local timeEnd = self.current.completedTimestamp

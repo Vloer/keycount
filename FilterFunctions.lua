@@ -40,6 +40,9 @@ local function noResult()
 end
 
 local filterConditions = {
+    ["alldata"] = function(entry, value)
+        return entry["season"] == Defaults.dungeonDefault.season
+    end,
     ["player"] = function(entry, value)
         return string.lower(entry["player"]) == string.lower(value)
     end,
@@ -100,13 +103,20 @@ local filterConditions = {
 }
 
 local function cleanFilterArgs(key, value)
+    if #key == 0 and #value == 0 then
+        return Defaults.filter.key, Defaults.filter.value
+    end
+
     local _key = string.lower(key)
     if _key == "player" and #value == 0 then
         value = UnitName("player")
     elseif #_key <= 3 and #value == 0 then
-        value = Defaults.dungeonNamesShort[key]
+        value = Defaults.dungeonNamesShort[string.upper(key)]
         if not value then return nil, nil end
         _key = "name"
+    elseif _key == "name" and #value <= 3 and #value > 0 then
+        value = Defaults.dungeonNamesShort[string.upper(value)]
+        if not value then return nil, nil end
     elseif _key == "completed" then
         value = true
     elseif _key == "intime" or _key == "completedintime" then
@@ -147,21 +157,26 @@ local function cleanFilterArgs(key, value)
 end
 
 function FilterData(tbl, key, value)
-    if #key == 0 and #value == 0 then return tbl end
     local result = {}
-
     local _key, _value = cleanFilterArgs(key, value)
     if not _key and not _value then return noResult() end
+    --@debug@
+    Log(string.format("FilterData: cleaned args are [%s] [%s]", _key, tostring(_value)))
+    --@end-debug@
 
     -- Table filtering
     for _, entry in ipairs(tbl) do
         if _key == "season" and entry[_key] ~= nil then
-            if _value == "all" then
-                table.insert(result, entry)
-            elseif string.lower(entry[_key]) == string.lower(_value) then
+            --@debug@
+            Log(string.format("FilterData: dungeon [%s] season [%s]", entry.name, entry.season))
+            --@end-debug@
+            if _value == "all" or string.lower(entry[_key]) == string.lower(_value) then
                 table.insert(result, entry)
             end
         elseif entry["season"] == Defaults.dungeonDefault.season then
+            --@debug@
+            Log(string.format("FilterData: dungeon [%s] _key [%s] _value [%s]", entry.name, _key, tostring(_value)))
+            --@end-debug@
             for conditionKey, conditionFunc in pairs(filterConditions) do
                 if _key == conditionKey then
                     if conditionFunc(entry, _value) then

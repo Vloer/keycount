@@ -84,16 +84,21 @@ local function prepareRowList(dungeon)
     local result = getResultString(dungeon)
     local deaths = dungeon.totalDeaths or 0
     local time = dungeon.timeToComplete
+    local date = ConvertOldDateFormat(dungeon.date)
     local affixes = ConcatTable(dungeon.keyDetails.affixes, ", ")
-
     local p = getPlayerRoleAndColor(dungeon)
     local playerString = string.format("%s%s", p.roleIcon, player)
+    --@debug@
+    Log(string.format("prepareRowList: [%s] [%s] [%s] [%s] [%s] [%s] [%s]", player, name, level, result.result, deaths,
+        time, date.date))
+    --@end-debug@
     table.insert(row, { value = playerString, color = p.color })
     table.insert(row, { value = name })
     table.insert(row, { value = level, color = getLevelColor(level).color })
     table.insert(row, { value = result.result, color = result.color })
     table.insert(row, { value = deaths, color = getDeathsColor(deaths) })
     table.insert(row, { value = time, color = result.color })
+    table.insert(row, { value = date.date })
     table.insert(row, { value = affixes })
     return { cols = row }
 end
@@ -107,6 +112,10 @@ local function prepareRowRate(dungeon)
     local outtime = dungeon.outOfTime
     local failed = dungeon.failed
     local best = dungeon.best
+    --@debug@
+    Log(string.format("prepareRowRate: [%s] [%s] [%s] [%s] [%s] [%s] [%s]", name, rate, rateString, intime, outtime,
+        failed, best))
+    --@end-debug@
     table.insert(row, { value = name })
     table.insert(row, { value = rateString, color = getSuccessRateColor(rate) })
     table.insert(row, { value = intime })

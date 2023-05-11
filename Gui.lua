@@ -8,7 +8,6 @@ function GUI:ConstructGUI()
     local function resetFilters()
         self.key = ""
         self.value = ""
-        self.previousValue = ""
         self.filter = FilterKeys[Defaults.gui.filter]
         self.filtertype = Defaults.gui.filterType
     end
@@ -25,9 +24,6 @@ function GUI:ConstructGUI()
     local function setFilterKeyValue()
         self.boxes.filterKey:SetText(self.filter.name)
         self.boxes.filterKey:SetValue(self.filter.key)
-        if self.value == "" and self.previousValue ~= "" and self.filter.key ~= "player" then
-            self.value = self.previousValue
-        end
         self.widgets.filterValue:SetText(self.value)
     end
 
@@ -37,6 +33,9 @@ function GUI:ConstructGUI()
     end
 
     local function fillTable()
+        --@debug@
+        Log(string.format("fillTable: Calling filterfunc with [%s] [%s] [%s]", self.filtertype, tostring(self.key), tostring(self.value)))
+        --@end-debug@
         local dungs = FilterFunc[self.filtertype](self.key, self.value)
         if not dungs then return end
         local data = PrepareData[self.filtertype](dungs)
@@ -86,7 +85,6 @@ function GUI:ConstructGUI()
 
     local function c_ShowData()
         if self.filtertype == "list" then
-            self.previousValue = self.value
             self.key = ""
             self.value = ""
         else
@@ -98,7 +96,7 @@ function GUI:ConstructGUI()
     local frame = AceGUI:Create("Frame")
     frame:SetTitle("KeyCount")
     frame:SetStatusText("Retrieve some data for your mythic+ runs!")
-    frame:SetWidth(770)
+    frame:SetWidth(840)
     frame:SetHeight(420)
     frame:SetCallback("OnClose", function(widget)
         AceGUI:Release(widget)
@@ -149,6 +147,7 @@ function GUI:ConstructGUI()
         { ["name"] = "Result",  ["width"] = 90, },
         { ["name"] = "Deaths",  ["width"] = 55,  ["defaultsort"] = "dsc" },
         { ["name"] = "Time",    ["width"] = 55, },
+        { ["name"] = "Date",    ["width"] = 70, },
         { ["name"] = "Affixes", ["width"] = 200, },
     }
     local columnsRate = {

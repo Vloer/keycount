@@ -36,7 +36,6 @@ table.copy = function(destination, source)
     destination = destination or {}
     for key, value in pairs(source) do
         if type(value) == "table" then
-            --if type(value) == "table" and type(destination[key]) == "table" and destination[key] ~= {} then
             destination[key] = {}
             table.copy(destination[key], value)
         else
@@ -105,4 +104,18 @@ function ConvertOldPartyFormat(party)
         end
     end
     return _party
+end
+
+function ConvertOldDateFormat(date)
+    local res = {}
+    if not date or date == "1900-01-01" then
+        res = {date = "1900-01-01", datetime = "1900-01-01 00:00:00", datestring = ""}
+    elseif #date == 10 and type(date) ~= table then
+        res = {date = date, datetime = string.format("%s 00:00:00", date)}
+    elseif type(date) == "table" then
+        res = {date = date.date or "1900-01-01", datetime = date.datetime or "1900-01-01 00:00:00", datestring = date.datestring or ""}
+    else
+        res = Defaults.dungeonDefault.date
+    end
+    return res
 end
