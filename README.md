@@ -39,6 +39,7 @@ This addon is still in beta development, but you can already download it from cu
       - Note, affixes, party, details stuff
     - Make GUI side scrollable if it gets too large?
     - If showing details stuff design it in a readable way
+    - grouped players success rate
 
 ## Notes section
     - At the end of a failed run ask player for a note on that run (popup?)
@@ -55,6 +56,4 @@ This addon is still in beta development, but you can already download it from cu
       - Interrupts
 
 ## Export
-    - Create CSV format converter
-      - Create a popup that holds the csv data so you can load it into external programs
     - Export success rate to chat

@@ -94,26 +94,36 @@ function ConcatTable(table, delimiter)
     return concatenatedString
 end
 
-function ConvertOldPartyFormat(party)
-    local _party = {}
-    for k, v in pairs(party) do
+function ConvertOldPartyFormat(_party, _deaths)
+    local party = {}
+    local deaths = _deaths or {}
+    for k, v in pairs(_party) do
         if type(k) == "number" then
-            _party[v.name] = v
+            party[v.name] = v
         else
-            _party[k] = v
+            party[k] = v
         end
     end
-    return _party
+    if type(deaths) == "table" then
+        for player, _ in pairs(party) do
+            party[player].deaths = deaths[player] or 0
+        end
+    end
+    return party
 end
 
 function ConvertOldDateFormat(date)
     local res = {}
     if not date or date == "1900-01-01" then
-        res = {date = "1900-01-01", datetime = "1900-01-01 00:00:00", datestring = ""}
+        res = { date = "1900-01-01", datetime = "1900-01-01 00:00:00", datestring = "" }
     elseif #date == 10 and type(date) ~= table then
-        res = {date = date, datetime = string.format("%s 00:00:00", date)}
+        res = { date = date, datetime = string.format("%s 00:00:00", date) }
     elseif type(date) == "table" then
-        res = {date = date.date or "1900-01-01", datetime = date.datetime or "1900-01-01 00:00:00", datestring = date.datestring or ""}
+        res = {
+            date = date.date or "1900-01-01",
+            datetime = date.datetime or "1900-01-01 00:00:00",
+            datestring = date.datestring or ""
+        }
     else
         res = Defaults.dungeonDefault.date
     end

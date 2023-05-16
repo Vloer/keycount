@@ -86,14 +86,6 @@ function GetPLayerList(dungeons)
     return pl
 end
 
-function GetStoredDungeons()
-    if not KeyCountDB or next(KeyCountDB) == nil or next(KeyCountDB.dungeons) == nil then
-        printf("No dungeons stored.", Defaults.colors.chatError)
-        return nil
-    end
-    return KeyCountDB.dungeons
-end
-
 function ShowPastDungeons()
     PreviousRunsDB = PreviousRunsDB or {}
     local runs = C_MythicPlus.GetRunHistory(true, true) -- This only captures finished dungeons

@@ -4,7 +4,7 @@ function SlashCmdList.KEYCOUNT()
     if not KeyCount.gui then
         print(" ")
         printf("KeyCount: ===WELCOME===")
-        local dungeons = GetStoredDungeons()
+        local dungeons = KeyCount:GetStoredDungeons()
         if dungeons then
             printf(string.format("There are %d dungeons stored in your database.", #dungeons))
         end
@@ -44,6 +44,14 @@ function SlashCmdList.KEYCOUNT_SUCCESSRATE(msg)
     FilterFunc.print.rate(key, value)
 end
 
+SLASH_KEYCOUNT_EXPORT1 = "/kcexport"
+SLASH_KEYCOUNT_EXPORT2 = "/kce"
+function SlashCmdList.KEYCOUNT_EXPORT(msg)
+    print(" ")
+    printf("KeyCount: ===CREATING DATA EXPORT===")
+    CreateDataExportFrame()
+end
+
 SLASH_KEYCOUNT_HELP1 = "/kchelp"
 SLASH_KEYCOUNT_HELP2 = "/kch"
 function SlashCmdList.KEYCOUNT_HELP(msg)
@@ -64,6 +72,9 @@ function SlashCmdList.KEYCOUNT_HELP(msg)
     printf(" ")
     printf(" [/kcr]  |  [/kcrate]")
     printf(" Show the success rate of all dungeons. Can be paired with filters.", Defaults.colors.chatWarning)
+    printf(" ")
+    printf(" [/kce]  |  [/kcexport]")
+    printf(" Export all dungeon data to csv format", Defaults.colors.chatWarning)
 end
 
 SLASH_KEYCOUNT_FILTEROPTS1 = "/kcfilteroptions"

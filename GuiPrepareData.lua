@@ -11,7 +11,7 @@ local function getRoleIcon(role)
 end
 
 local function getPlayerRoleAndColor(dungeon)
-    local party = ConvertOldPartyFormat(dungeon.party)
+    local party = ConvertOldPartyFormat(dungeon.party, dungeon.deaths)
     local player = party[dungeon.player]
     local _class = player.class
     local classUppercase = string.upper(_class)

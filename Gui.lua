@@ -3,6 +3,9 @@ function GUI:ConstructGUI()
     self.widgets = {}
     self.tables = {}
     self.boxes = {}
+    self.buttons = {}
+    self.dungeons = {}
+    self.data = {}
     local AceGUI = LibStub("AceGUI-3.0")
 
     local function resetFilters()
@@ -36,18 +39,18 @@ function GUI:ConstructGUI()
         --@debug@
         Log(string.format("fillTable: Calling filterfunc with [%s] [%s] [%s]", self.filtertype, tostring(self.key), tostring(self.value)))
         --@end-debug@
-        local dungs = FilterFunc[self.filtertype](self.key, self.value)
-        if not dungs then return end
-        local data = PrepareData[self.filtertype](dungs)
+        self.dungeons = FilterFunc[self.filtertype](self.key, self.value)
+        if not self.dungeons then return end
+        self.data = PrepareData[self.filtertype](self.dungeons)
         if self.filtertype == "rate" then
             self.tables.stL:Hide()
             self.tables.stR:Show()
-            self.tables.stR:SetData(data)
+            self.tables.stR:SetData(self.data)
             self.tables.stR:Refresh()
         else
             self.tables.stR:Hide()
             self.tables.stL:Show()
-            self.tables.stL:SetData(data)
+            self.tables.stL:SetData(self.data)
             self.tables.stL:Refresh()
         end
     end
@@ -58,6 +61,7 @@ function GUI:ConstructGUI()
             disableFilters(true)
             self.tables.stR:Hide()
             self.tables.stL:Show()
+            self.buttons.exportdata:SetDisabled(false)
         else
             disableFilters(false)
             setFilterKeyValue()
@@ -65,9 +69,11 @@ function GUI:ConstructGUI()
             if self.filtertype == "filter" then
                 self.tables.stR:Hide()
                 self.tables.stL:Show()
+                self.buttons.exportdata:SetDisabled(false)
             else --rate
                 self.tables.stL:Hide()
                 self.tables.stR:Show()
+                self.buttons.exportdata:SetDisabled(true)
             end
         end
     end
@@ -96,7 +102,7 @@ function GUI:ConstructGUI()
     local frame = AceGUI:Create("Frame")
     frame:SetTitle("KeyCount")
     frame:SetStatusText("Retrieve some data for your mythic+ runs!")
-    frame:SetWidth(840)
+    frame:SetWidth(850)
     frame:SetHeight(420)
     frame:SetCallback("OnClose", function(widget)
         AceGUI:Release(widget)
@@ -131,11 +137,17 @@ function GUI:ConstructGUI()
     self.widgets.filterValue:SetDisabled(true)
     frame:AddChild(self.widgets.filterValue)
 
-    local button = AceGUI:Create("Button")
-    button:SetText("Show data")
-    button:SetWidth(185)
-    button:SetCallback("OnClick", c_ShowData)
-    frame:AddChild(button)
+    self.buttons.showdata = AceGUI:Create("Button")
+    self.buttons.showdata:SetText("Show data")
+    self.buttons.showdata:SetWidth(140)
+    self.buttons.showdata:SetCallback("OnClick", c_ShowData)
+    frame:AddChild(self.buttons.showdata)
+
+    self.buttons.exportdata = AceGUI:Create("Button")
+    self.buttons.exportdata:SetText("Export data")
+    self.buttons.exportdata:SetWidth(140)
+    self.buttons.exportdata:SetCallback("OnClick", function() CreateDataExportFrame(self.dungeons) end)
+    frame:AddChild(self.buttons.exportdata)
 
     -- Tables
     local window = frame.frame
@@ -147,7 +159,7 @@ function GUI:ConstructGUI()
         { ["name"] = "Result",  ["width"] = 90, },
         { ["name"] = "Deaths",  ["width"] = 55,  ["defaultsort"] = "dsc" },
         { ["name"] = "Time",    ["width"] = 55, },
-        { ["name"] = "Date",    ["width"] = 70, },
+        { ["name"] = "Date",    ["width"] = 80, },
         { ["name"] = "Affixes", ["width"] = 200, },
     }
     local columnsRate = {

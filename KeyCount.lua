@@ -58,6 +58,7 @@ function KeyCount:COMBAT_LOG_EVENT_UNFILTERED()
     if event == "UNIT_DIED" and UnitInParty(destName) then
         if AuraUtil.FindAuraByName("Feign Death", destName) then return end
         self.current.deaths[destName] = (self.current.deaths[destName] or 0) + 1
+        self.current.party[destName].deaths = (self.current.party[destName] or 0) + 1
         printf(string.format("%s died!", destName), Defaults.colors.chatError)
     end
 end
@@ -103,7 +104,7 @@ end
 function KeyCount:CheckIfInDungeon()
     Log("Called CheckIfInDungeon")
     -- For some reason dalaran has maptype dungeon
-    if self.mapInfo and self.mapInfo.mapType == Enum.UIMapType.Dungeon and self.mapInfo.name ~= "Dalaran" then
+    if self.mapInfo and self.mapInfo.mapType == Enum.UIMapType.Dungeon and self.mapInfo.name ~= "Dalaran" and self.mapInfo.name ~= "Aberrus, the Shadowed Crucible" then
         Log("Entered dungeon: " .. self.mapInfo.name)
         KeyCount:InitDungeon()
     else
@@ -125,7 +126,7 @@ function KeyCount:InitDungeon()
         end
     end
     if KeyCountDB.current ~= {} and not table.equal(self.current, Defaults.dungeonDefault) then
-        printf("Dungeon state restored")
+        Log("Dungeon state restored from db")
         table.copy(self.current, KeyCountDB.current)
     else
         Log("Dungeon state set to default values")
@@ -141,10 +142,10 @@ function KeyCount:SetKeyStart()
     local challengeMapID = C_ChallengeMode.GetActiveChallengeMapID()
     local name, _, timeLimit = C_ChallengeMode.GetMapUIInfo(challengeMapID)
     Log(string.format("Started %s on level %d.", name, activeKeystoneLevel))
-    printf(string.format("Started recording for %s %d.", name, activeKeystoneLevel))
+    printf(string.format("KeyCount: started recording for %s %d.", name, activeKeystoneLevel))
     self.current.keyDetails.level = activeKeystoneLevel
     self.current.startedTimestamp = time()
-    self.current.party = GetPartyMemberInfo()
+    self.current.party = self:GetPartyMemberInfo()
     self.current.keyDetails.affixes = {}
     self.current.keyDetails.timeLimit = timeLimit
     self.current.name = name
@@ -158,7 +159,7 @@ end
 
 function KeyCount:CheckIfKeyFailed(party)
     Log("Called CheckIfKeyFailed")
-    if party == nil then party = GetPartyMemberInfo() end
+    if party == nil then party = self:GetPartyMemberInfo() end
     if #party < 5 then
         Log("Key failed!")
         return true
@@ -191,6 +192,9 @@ function KeyCount:SetKeyEnd()
     if self.current.keyDetails.timeLimit == 0 then
         _, _, self.current.keyDetails.timeLimit = C_ChallengeMode.GetMapUIInfo(mapChallengeModeID)
     end
+    -- for player, _ in pairs(self.current.party) do
+    --     self.current.party[player].deaths = self.current.deaths[player] or 0
+    -- end
     KeyCount:FinishDungeon()
     Log("Finished SetKeyEnd")
 end
@@ -244,12 +248,11 @@ function KeyCount:SaveDungeons()
     self.dungeons = {}
 end
 
--- Game related functions
-function GetPartyMemberInfo()
+function KeyCount:GetPartyMemberInfo()
     local info = {}
     local numGroupMembers = GetNumGroupMembers()
     if numGroupMembers == 0 then
-        info = GetPlayerInfo()
+        info = self:GetPlayerInfo()
     else
         for i = 1, numGroupMembers do
             local name, _, _, _, class, _, _, _, _, _, _, role = GetRaidRosterInfo(i)
@@ -259,7 +262,7 @@ function GetPartyMemberInfo()
     return info
 end
 
-function GetPlayerInfo()
+function KeyCount:GetPlayerInfo()
     local specIndex = GetSpecialization()
     local _, spec, _, _, specRole = GetSpecializationInfo(specIndex)
     local name = UnitName("player")
@@ -272,4 +275,12 @@ function GetPlayerInfo()
         name = name
     }
     return info
+end
+
+function KeyCount:GetStoredDungeons()
+    if not KeyCountDB or next(KeyCountDB) == nil or next(KeyCountDB.dungeons) == nil then
+        printf("No dungeons stored.", Defaults.colors.chatError)
+        return nil
+    end
+    return KeyCountDB.dungeons
 end

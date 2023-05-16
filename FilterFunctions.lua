@@ -1,5 +1,5 @@
 local filterDungeons = function(key, value)
-    local _dungeons = GetStoredDungeons()
+    local _dungeons = KeyCount:GetStoredDungeons()
     if not _dungeons then return end
     local filteredDungeons = FilterData(_dungeons, key, value)
     if not filteredDungeons then return end
