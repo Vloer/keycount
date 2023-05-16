@@ -54,7 +54,8 @@ Defaults = {
             affixes = {},
             timeLimit = 0,
         },
-        date = { ["date"] = "", ["datestring"] = "", ["datetime"] = "" }
+        date = { ["date"] = "", ["datestring"] = "", ["datetime"] = "" },
+        stars = ""
     },
     colors = {
         chatAnnounce = colors.cyan.chat,
@@ -82,5 +83,6 @@ Defaults = {
         filterType = "list",
         filter = "alldata"
     },
-    filter = { key = "alldata", value = "" }
+    filter = { key = "alldata", value = "" },
+    dungeonPlusChar = "*"
 }
