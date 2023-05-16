@@ -58,7 +58,7 @@ function KeyCount:COMBAT_LOG_EVENT_UNFILTERED()
     if event == "UNIT_DIED" and UnitInParty(destName) then
         if AuraUtil.FindAuraByName("Feign Death", destName) then return end
         self.current.deaths[destName] = (self.current.deaths[destName] or 0) + 1
-        self.current.party[destName].deaths = (self.current.party[destName] or 0) + 1
+        self.current.party[destName].deaths = (self.current.party[destName].deaths or 0) + 1
         printf(string.format("%s died!", destName), Defaults.colors.chatError)
     end
 end
@@ -225,6 +225,18 @@ function KeyCount:SetTimeToComplete()
         self.current.time = timeEnd - timeStart + timeLost
     end
     self.current.timeToComplete = FormatTimestamp(self.current.time)
+    if self.current.completedInTime then
+        local s = ""
+        local symbol = Defaults.dungeonPlusChar
+        if time < (self.current.keyDetails.timeLimit * 0.6) then
+            s = string.format("%s%s%s%s", s, symbol, symbol, symbol)
+        elseif time < (self.current.keyDetails.timeLimit * 0.8) then
+            s = string.format("%s%s%s", s, symbol, symbol)
+        else
+            s = string.format("%s%s", s, symbol)
+        end
+        self.current.stars = s
+    end
 end
 
 function KeyCount:SaveAndReset()

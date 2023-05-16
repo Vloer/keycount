@@ -24,6 +24,7 @@ This addon is still in beta development, but you can already download it from cu
 ## Make sure addon does not reset in the following scenarios:
     - Other player leaves and rejoins party during active challenge mode
     - Other player leaves party but dungeon is still finished
+    - Other player leaves and re-enters dungeon (this triggers group_roster_update and results in partymembers not being calculated correctly)
 
 ## Do reset addon when:
     - Player logs out and into another character

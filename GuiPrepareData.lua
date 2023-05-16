@@ -74,7 +74,28 @@ local function getSuccessRateColor(rate)
     return ConvertRgb(Defaults.colors.rating[idx])
 end
 
-
+local function getDungeonTime(dungeon)
+    local symbol = Defaults.dungeonPlusChar
+    local s = dungeon.timeToComplete
+    local stars = dungeon.stars or nil
+    if stars then
+        s = string.format("%s%s", s, stars)
+    else
+        local completed = dungeon.completedInTime
+        local time = dungeon.time
+        local limit = dungeon.keyDetails.timeLimit or 0
+        if completed then
+            if time < (limit * 0.6) then
+                s = string.format("%s%s%s%s", s, symbol, symbol, symbol)
+            elseif time < (limit * 0.8) then
+                s = string.format("%s%s%s", s, symbol, symbol)
+            else
+                s = string.format("%s%s", s, symbol)
+            end
+        end
+    end
+    return s
+end
 
 local function prepareRowList(dungeon)
     local row = {}
@@ -83,7 +104,7 @@ local function prepareRowList(dungeon)
     local level = dungeon.keyDetails.level
     local result = getResultString(dungeon)
     local deaths = dungeon.totalDeaths or 0
-    local time = dungeon.timeToComplete
+    local time = getDungeonTime(dungeon)
     local date = ConvertOldDateFormat(dungeon.date)
     local affixes = ConcatTable(dungeon.keyDetails.affixes, ", ")
     local p = getPlayerRoleAndColor(dungeon)

@@ -1,6 +1,6 @@
 ## Interface: 100100
 ## Title: KeyCount
-## Author: Klanx
+## Author: Vloer
 ## Version: @project-version@
 ## SavedVariables: KeyCountDB
 

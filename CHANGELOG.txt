@@ -1,3 +1,2 @@
-- Added date column to gui
-- Changed date storage format (now stores date, datetime, human readable date string)
-- Removed buggy setting that reset filter value to a previous value
+- Added ++ or +++ to dungeon timer if applicable
+- Fixed bug where deaths were not being recorded correctly causing lua errors
