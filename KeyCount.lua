@@ -228,9 +228,9 @@ function KeyCount:SetTimeToComplete()
     if self.current.completedInTime then
         local s = ""
         local symbol = Defaults.dungeonPlusChar
-        if time < (self.current.keyDetails.timeLimit * 0.6) then
+        if self.current.time < (self.current.keyDetails.timeLimit * 0.6) then
             s = string.format("%s%s%s%s", s, symbol, symbol, symbol)
-        elseif time < (self.current.keyDetails.timeLimit * 0.8) then
+        elseif self.current.time < (self.current.keyDetails.timeLimit * 0.8) then
             s = string.format("%s%s%s", s, symbol, symbol)
         else
             s = string.format("%s%s", s, symbol)

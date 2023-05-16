@@ -1,2 +1,7 @@
+- Fixed bug on setting 'stars' value in KeyCount.current. Caused dungeons to not be saved!
+
+0.4.7-beta changelog:
+- You asked - I delivered! You can now export data to csv by typing /kcexport or click the button in the GUI
+- Now storing deaths per character in party. This data is available retroactively
 - Added ++ or +++ to dungeon timer if applicable
 - Fixed bug where deaths were not being recorded correctly causing lua errors
