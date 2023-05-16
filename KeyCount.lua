@@ -160,7 +160,9 @@ end
 function KeyCount:CheckIfKeyFailed(party)
     Log("Called CheckIfKeyFailed")
     if party == nil then party = self:GetPartyMemberInfo() end
-    if #party < 5 then
+    local partysize = 0
+    for i in pairs(party) do partysize = partysize + 1 end
+    if partysize < 5 then
         Log("Key failed!")
         return true
     end
