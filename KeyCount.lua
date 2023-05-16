@@ -194,9 +194,6 @@ function KeyCount:SetKeyEnd()
     if self.current.keyDetails.timeLimit == 0 then
         _, _, self.current.keyDetails.timeLimit = C_ChallengeMode.GetMapUIInfo(mapChallengeModeID)
     end
-    -- for player, _ in pairs(self.current.party) do
-    --     self.current.party[player].deaths = self.current.deaths[player] or 0
-    -- end
     KeyCount:FinishDungeon()
     Log("Finished SetKeyEnd")
 end
