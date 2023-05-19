@@ -136,8 +136,10 @@ function GUI:ConstructGUI()
     self.boxes.filterKey = AceGUI:Create("Dropdown")
     self.boxes.filterKey:SetLabel(self.defaults.boxes.filterKey.text)
     self.boxes.filterKey:SetWidth(self.defaults.boxes.filterKey.width)
-    for f, v in pairs(KeyCount.filterkeys) do
-        self.boxes.filterKey:AddItem(f, v.name)
+    for _, key in pairs(KeyCount.filterorder) do
+        local f = KeyCount.filterkeys[key].key
+        local name = KeyCount.filterkeys[key].name
+        self.boxes.filterKey:AddItem(f, name)
     end
     self.boxes.filterKey:SetCallback("OnValueChanged", function(widget, event, item) c_FilterKey(item) end)
     self.boxes.filterKey:SetDisabled(true)

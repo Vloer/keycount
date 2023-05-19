@@ -1,39 +1,3 @@
-local filterDungeons = function(key, value)
-    local _dungeons = KeyCount:GetStoredDungeons()
-    if not _dungeons then return end
-    local filteredDungeons = FilterData(_dungeons, key, value)
-    if not filteredDungeons then return end
-    return filteredDungeons
-end
-
-local fListPrint = function()
-    local _dungeons = filterDungeons("", "")
-    if not _dungeons then return end
-    local dl = KeyCount.util.orderListByPlayer(_dungeons)
-    for _, dungeons in pairs(dl) do
-        KeyCount.utilstats.printDungeons(dungeons)
-    end
-end
-
-local fFilterPrint = function(key, value)
-    local _dungeons = filterDungeons(key, value)
-    if not _dungeons then return end
-    local dl = KeyCount.util.orderListByPlayer(_dungeons)
-    for _, dungeons in pairs(dl) do
-        KeyCount.utilstats.printDungeons(dungeons)
-    end
-end
-
-local fRate = function(key, value)
-    local dungeons = filterDungeons(key, value)
-    if dungeons then return KeyCount.utilstats.getDungeonSuccessRate(dungeons) end
-end
-
-local fRatePrint = function(key, value)
-    local dungeons = fRate(key, value)
-    if dungeons then KeyCount.utilstats.printDungeonSuccessRate(dungeons) end
-end
-
 local function noResult()
     printf("No dungeons matched your filter criteria!", KeyCount.defaults.colors.chatWarning)
     return nil
@@ -156,7 +120,7 @@ local function cleanFilterArgs(key, value)
     return _key, value
 end
 
-function FilterData(tbl, key, value)
+local function filterData(tbl, key, value)
     local result = {}
     local _key, _value = cleanFilterArgs(key, value)
     if not _key and not _value then return noResult() end
@@ -191,6 +155,41 @@ function FilterData(tbl, key, value)
     end
     return result
 end
+local filterDungeons = function(key, value)
+    local _dungeons = KeyCount:GetStoredDungeons()
+    if not _dungeons then return end
+    local filteredDungeons = filterData(_dungeons, key, value)
+    if not filteredDungeons then return end
+    return filteredDungeons
+end
+
+local fListPrint = function()
+    local _dungeons = filterDungeons("", "")
+    if not _dungeons then return end
+    local dl = KeyCount.util.orderListByPlayer(_dungeons)
+    for _, dungeons in pairs(dl) do
+        KeyCount.utilstats.printDungeons(dungeons)
+    end
+end
+
+local fFilterPrint = function(key, value)
+    local _dungeons = filterDungeons(key, value)
+    if not _dungeons then return end
+    local dl = KeyCount.util.orderListByPlayer(_dungeons)
+    for _, dungeons in pairs(dl) do
+        KeyCount.utilstats.printDungeons(dungeons)
+    end
+end
+
+local fRate = function(key, value)
+    local dungeons = filterDungeons(key, value)
+    if dungeons then return KeyCount.utilstats.getDungeonSuccessRate(dungeons) end
+end
+
+local fRatePrint = function(key, value)
+    local dungeons = fRate(key, value)
+    if dungeons then KeyCount.utilstats.printDungeonSuccessRate(dungeons) end
+end
 
 KeyCount.filterfunctions = {
     print = {
@@ -213,6 +212,13 @@ KeyCount.filterkeys = {
     ["outTime"] = { key = "outTime", value = "outOfTime", name = "Completed out of time" },
     ["failed"] = { key = "failed", value = "failed", name = "Abandoned" },
     ["time"] = { key = "time", value = "time", name = "Time" },
+    ["deathsgt"] = { key = "deathsgt", value = "deathsgt", name = "Minimum amount of deaths" },
+    ["deathslt"] = { key = "deathslt", value = "deathslt", name = "Maximum amount of deaths" },
     ["date"] = { key = "date", value = "date", name = "Date" },
     ["affix"] = { key = "affix", value = "affix", name = "Affixes" },
 }
+
+KeyCount.filterorder = {
+    "alldata", "player", "dungeon", "season",
+    "completed", "inTime", "outTime", "failed",
+    "time", "deathsgt", "deathslt", "date", "affix" }
