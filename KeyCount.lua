@@ -1,4 +1,11 @@
 KeyCount = CreateFrame("Frame", "KeyCount")
+KeyCount.defaults = {}
+KeyCount.exportdata = {}
+KeyCount.filterfunctions = {}
+KeyCount.filterkeys = {}
+KeyCount.guipreparedata = {}
+KeyCount.util = {}
+KeyCount.utilstats = {}
 
 -- Event behaviour
 function KeyCount:OnEvent(event, ...)
@@ -9,7 +16,7 @@ function KeyCount:PLAYER_LOGOUT(event)
     -- Update current table in DB if it is not set to the default values
     KeyCount:SaveDungeons()
     if self.keystoneActive then KeyCountDB.keystoneActive = true else KeyCountDB.keystoneActive = false end
-    if self.current and not table.equal(self.current, Defaults.dungeonDefault) then
+    if self.current and not table.equal(self.current, self.defaults.dungeonDefault) then
         table.copy(KeyCountDB.current, self.current)
     end
 end
@@ -59,7 +66,7 @@ function KeyCount:COMBAT_LOG_EVENT_UNFILTERED()
         if AuraUtil.FindAuraByName("Feign Death", destName) then return end
         self.current.deaths[destName] = (self.current.deaths[destName] or 0) + 1
         self.current.party[destName].deaths = (self.current.party[destName].deaths or 0) + 1
-        printf(string.format("%s died!", destName), Defaults.colors.chatError)
+        printf(string.format("%s died!", destName), self.defaults.colors.chatError)
     end
 end
 
@@ -87,14 +94,14 @@ KeyCount:SetScript("OnEvent", KeyCount.OnEvent)
 function KeyCount:InitSelf()
     Log("Called InitSelf")
     self.party = self.party or {}
-    self.current = self.current or table.copy({}, Defaults.dungeonDefault)
+    self.current = self.current or table.copy({}, self.defaults.dungeonDefault)
     self.dungeons = self.dungeons or {}
     KeyCountDB = KeyCountDB or {}
     KeyCountDB.current = KeyCountDB.current or {}
     KeyCountDB.dungeons = KeyCountDB.dungeons or {}
     PreviousRunsDB = PreviousRunsDB or {}
     if KeyCountDB.keystoneActive then self.keystoneActive = true else self.keystoneActive = false end
-    if not table.equal(KeyCountDB.current, Defaults.dungeonDefault) and self.keystoneActive then
+    if not table.equal(KeyCountDB.current, self.defaults.dungeonDefault) and self.keystoneActive then
         Log("Setting current dungeon to value from DB")
         table.copy(self.current, KeyCountDB.current)
     end
@@ -125,12 +132,12 @@ function KeyCount:InitDungeon()
             return
         end
     end
-    if KeyCountDB.current ~= {} and not table.equal(self.current, Defaults.dungeonDefault) then
+    if KeyCountDB.current ~= {} and not table.equal(self.current, self.defaults.dungeonDefault) then
         Log("Dungeon state restored from db")
         table.copy(self.current, KeyCountDB.current)
     else
         Log("Dungeon state set to default values")
-        self.current = table.copy({}, Defaults.dungeonDefault)
+        self.current = table.copy({}, self.defaults.dungeonDefault)
     end
     Log("Finished InitDungeon")
 end
@@ -174,7 +181,7 @@ function KeyCount:SetKeyFailed()
     self.current.completedTimestamp = time()
     self.current.completed = false
     self.current.completedInTime = false
-    self.current.totalDeaths = SumTbl(self.current.deaths) or 0
+    self.current.totalDeaths = self.util.sumTbl(self.current.deaths) or 0
     KeyCount:FinishDungeon()
     Log("Finished SetKeyFailed")
 end
@@ -190,7 +197,7 @@ function KeyCount:SetKeyEnd()
     self.current.completedTimestamp = time()
     self.current.completedInTime = onTime
     self.current.time = totalTime
-    self.current.totalDeaths = SumTbl(self.current.deaths) or 0
+    self.current.totalDeaths = self.util.sumTbl(self.current.deaths) or 0
     if self.current.keyDetails.timeLimit == 0 then
         _, _, self.current.keyDetails.timeLimit = C_ChallengeMode.GetMapUIInfo(mapChallengeModeID)
     end
@@ -210,7 +217,7 @@ function KeyCount:FinishDungeon()
 end
 
 function KeyCount:SetTimeToComplete()
-    self.current.date = {date = date(Defaults.dateFormat), datestring = date(), datetime = date(Defaults.datetimeFormat)}
+    self.current.date = {date = date(self.defaults.dateFormat), datestring = date(), datetime = date(self.defaults.datetimeFormat)}
     if self.current.time == 0 then
         local timeStart = self.current.startedTimestamp
         local timeEnd = self.current.completedTimestamp
@@ -223,10 +230,10 @@ function KeyCount:SetTimeToComplete()
         end
         self.current.time = timeEnd - timeStart + timeLost
     end
-    self.current.timeToComplete = FormatTimestamp(self.current.time)
+    self.current.timeToComplete = KeyCount.util.formatTimestamp(self.current.time)
     if self.current.completedInTime then
         local s = ""
-        local symbol = Defaults.dungeonPlusChar
+        local symbol = self.defaults.dungeonPlusChar
         if self.current.time < (self.current.keyDetails.timeLimit * 0.6) then
             s = string.format("%s%s%s%s", s, symbol, symbol, symbol)
         elseif self.current.time < (self.current.keyDetails.timeLimit * 0.8) then
@@ -241,7 +248,7 @@ end
 function KeyCount:SaveAndReset()
     Log("Called SaveAndReset")
     local cur = table.copy({}, self.current)            --Required to pass by value instead of reference
-    local def = table.copy({}, Defaults.dungeonDefault) --Required to pass by value instead of reference
+    local def = table.copy({}, self.defaults.dungeonDefault) --Required to pass by value instead of reference
     table.insert(self.dungeons, cur)
     table.copy(self.current, def)
     KeyCountDB.current = {}
@@ -290,7 +297,7 @@ end
 
 function KeyCount:GetStoredDungeons()
     if not KeyCountDB or next(KeyCountDB) == nil or next(KeyCountDB.dungeons) == nil then
-        printf("No dungeons stored.", Defaults.colors.chatError)
+        printf("No dungeons stored.", self.defaults.colors.chatError)
         return nil
     end
     return KeyCountDB.dungeons

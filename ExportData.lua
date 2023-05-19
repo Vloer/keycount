@@ -19,7 +19,7 @@ local function flatten(data)
                 out[_k] = _v
             end
         elseif col == "party" and type(v) == "table" then
-            local partydata = ConvertOldPartyFormat(v, data["deaths"])
+            local partydata = KeyCount.util.convertOldPartyFormat(v, data["deaths"])
             local i = 0
             for playername, playerdata in pairs(partydata) do
                 i = i + 1
@@ -109,8 +109,7 @@ local function formatCSV(_dungeons)
 
     return output
 end
-
-function CreateDataExportFrame(_data)
+local function createDataExportFrame(_data)
     local data = formatCSV(_data)
     local AceGUI = LibStub("AceGUI-3.0")
     local f = AceGUI:Create("Frame")
@@ -131,3 +130,7 @@ function CreateDataExportFrame(_data)
     end)
     f:AddChild(e)
 end
+
+KeyCount.exportdata = {
+    createFrame = createDataExportFrame
+}

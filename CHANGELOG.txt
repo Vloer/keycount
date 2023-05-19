@@ -1,4 +1,6 @@
-- Marking key as failed should no longer bug out (checking for partysize went wrong after a previous update)
+- Added option to export success rate to chat in GUI
+- Added max and min deaths to filters
+- Backend changes
 
 0.4.7-beta changelog:
 - You asked - I delivered! You can now export data to csv by typing /kcexport or click the button in the GUI
@@ -6,3 +8,4 @@
 - Added ++ or +++ to dungeon timer if applicable
 - Fixed bug where deaths were not being recorded correctly causing lua errors
 - Fixed bug on setting 'stars' value in KeyCount.current. Caused dungeons to not be saved!
+- Marking key as failed should no longer bug out (checking for partysize went wrong after a previous update)

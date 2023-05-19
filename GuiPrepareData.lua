@@ -11,7 +11,7 @@ local function getRoleIcon(role)
 end
 
 local function getPlayerRoleAndColor(dungeon)
-    local party = ConvertOldPartyFormat(dungeon.party, dungeon.deaths)
+    local party = KeyCount.util.convertOldPartyFormat(dungeon.party, dungeon.deaths)
     local player = party[dungeon.player]
     local _class = player.class
     local classUppercase = string.upper(_class)
@@ -42,11 +42,11 @@ end
 
 local function getResultString(dungeon)
     if dungeon.completedInTime then
-        return { result = "Timed", color = ConvertRgb(Defaults.colors.rating[5]) }
+        return { result = "Timed", color = KeyCount.util.convertRgb(KeyCount.defaults.colors.rating[5]) }
     elseif dungeon.completed then
-        return { result = "Failed to time", color = ConvertRgb(Defaults.colors.rating[3]) }
+        return { result = "Failed to time", color = KeyCount.util.convertRgb(KeyCount.defaults.colors.rating[3]) }
     else
-        return { result = "Abandoned", color = ConvertRgb(Defaults.colors.rating[1]) }
+        return { result = "Abandoned", color = KeyCount.util.convertRgb(KeyCount.defaults.colors.rating[1]) }
     end
 end
 
@@ -58,7 +58,7 @@ local function getDeathsColor(deaths)
         idx = math.floor(6 - deaths / 4)
         if idx <= 0 then idx = 1 end
     end
-    return ConvertRgb(Defaults.colors.rating[idx])
+    return KeyCount.util.convertRgb(KeyCount.defaults.colors.rating[idx])
 end
 
 local function getSuccessRateColor(rate)
@@ -71,11 +71,11 @@ local function getSuccessRateColor(rate)
         idx = math.floor(rate / 20) + 1
         if idx <= 0 then idx = 1 end
     end
-    return ConvertRgb(Defaults.colors.rating[idx])
+    return KeyCount.util.convertRgb(KeyCount.defaults.colors.rating[idx])
 end
 
 local function getDungeonTime(dungeon)
-    local symbol = Defaults.dungeonPlusChar
+    local symbol = KeyCount.defaults.dungeonPlusChar
     local s = dungeon.timeToComplete
     local stars = dungeon.stars or nil
     if stars then
@@ -105,8 +105,8 @@ local function prepareRowList(dungeon)
     local result = getResultString(dungeon)
     local deaths = dungeon.totalDeaths or 0
     local time = getDungeonTime(dungeon)
-    local date = ConvertOldDateFormat(dungeon.date)
-    local affixes = ConcatTable(dungeon.keyDetails.affixes, ", ")
+    local date = KeyCount.util.convertOldDateFormat(dungeon.date)
+    local affixes = KeyCount.util.concatTable(dungeon.keyDetails.affixes, ", ")
     local p = getPlayerRoleAndColor(dungeon)
     local playerString = string.format("%s%s", p.roleIcon, player)
     --@debug@
@@ -164,7 +164,7 @@ local function prepareRate(dungeons)
     return data
 end
 
-PrepareData = {
+KeyCount.guipreparedata = {
     list = prepareList,
     filter = prepareList,
     rate = prepareRate

@@ -4,16 +4,9 @@ function Log(message)
     end
 end
 
-function ParseMsg(msg)
-    if not msg or #msg == 0 then return "", "" end
-    local _, _, key, value = string.find(msg, "%s?(%w+)%s?(.*)")
-    return key, value
-end
-
-function FormatTimestamp(seconds)
-    local minutes = math.floor(seconds / 60)
-    local remainingSeconds = seconds - (minutes * 60)
-    return string.format("%02d:%02d", minutes, remainingSeconds)
+function printf(msg, fmt)
+    fmt = fmt or KeyCount.defaults.colors.chatAnnounce
+    print(string.format("%s%s|r", fmt, msg))
 end
 
 table.equal = function(t1, t2)
@@ -45,12 +38,19 @@ table.copy = function(destination, source)
     return destination
 end
 
-function printf(msg, fmt)
-    fmt = fmt or Defaults.colors.chatAnnounce
-    print(string.format("%s%s|r", fmt, msg))
+local function parseMsg(msg)
+    if not msg or #msg == 0 then return "", "" end
+    local _, _, key, value = string.find(msg, "%s?(%w+)%s?(.*)")
+    return key, value
 end
 
-function SumTbl(tbl)
+local function formatTimestamp(seconds)
+    local minutes = math.floor(seconds / 60)
+    local remainingSeconds = seconds - (minutes * 60)
+    return string.format("%02d:%02d", minutes, remainingSeconds)
+end
+
+local function sumTbl(tbl)
     if type(tbl) ~= "table" then return end
     local res = 0
     for k, v in pairs(tbl) do
@@ -61,7 +61,7 @@ function SumTbl(tbl)
     return res
 end
 
-function ConvertRgb(colorTable)
+local function convertRgb(colorTable)
     local normalizedTable = {}
     for key, value in pairs(colorTable) do
         if type(value) == "number" and value > 1 then
@@ -73,7 +73,7 @@ function ConvertRgb(colorTable)
     return normalizedTable
 end
 
-function OrderListByPlayer(dungeons)
+local function orderListByPlayer(dungeons)
     local dl = {}
     for _, dungeon in pairs(dungeons) do
         local player = dungeon.player
@@ -83,7 +83,7 @@ function OrderListByPlayer(dungeons)
     return dl
 end
 
-function ConcatTable(table, delimiter)
+local function concatTable(table, delimiter)
     local concatenatedString = ""
     for i, value in ipairs(table) do
         concatenatedString = concatenatedString .. tostring(value)
@@ -94,7 +94,7 @@ function ConcatTable(table, delimiter)
     return concatenatedString
 end
 
-function ConvertOldPartyFormat(_party, _deaths)
+local function convertOldPartyFormat(_party, _deaths)
     local party = {}
     local deaths = _deaths or {}
     for k, v in pairs(_party) do
@@ -112,7 +112,7 @@ function ConvertOldPartyFormat(_party, _deaths)
     return party
 end
 
-function ConvertOldDateFormat(date)
+local function convertOldDateFormat(date)
     local res = {}
     if not date or date == "1900-01-01" then
         res = { date = "1900-01-01", datetime = "1900-01-01 00:00:00", datestring = "" }
@@ -125,7 +125,18 @@ function ConvertOldDateFormat(date)
             datestring = date.datestring or ""
         }
     else
-        res = Defaults.dungeonDefault.date
+        res = KeyCount.defaults.dungeonDefault.date
     end
     return res
 end
+
+KeyCount.util = {
+    parseMsg=parseMsg,
+    formatTimestamp=formatTimestamp,
+    sumTbl=sumTbl,
+    convertRgb=convertRgb,
+    orderListByPlayer=orderListByPlayer,
+    convertOldDateFormat=convertOldDateFormat,
+    convertOldPartyFormat=convertOldPartyFormat,
+    concatTable=concatTable,
+}
