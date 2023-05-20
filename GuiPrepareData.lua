@@ -14,9 +14,9 @@ local function getPlayerRoleAndColor(dungeon)
     local party = KeyCount.util.convertOldPartyFormat(dungeon.party, dungeon.deaths)
     local player = party[dungeon.player]
     local _class = player.class
-    local classUppercase = string.upper(_class)
-    local class = string.gsub(classUppercase, " ", "")
-    local tbl = RAID_CLASS_COLORS[class]
+    local classMale = KeyCount.util.getKeyForValue(LOCALIZED_CLASS_NAMES_MALE, _class)
+    local classFemale = KeyCount.util.getKeyForValue(LOCALIZED_CLASS_NAMES_FEMALE, _class)
+    local tbl = RAID_CLASS_COLORS[classMale or classFemale]
     local color = { r = tbl.r, g = tbl.g, b = tbl.b, a = 1 }
     local role = player.role
     local roleIcon = getRoleIcon(role)
