@@ -130,6 +130,13 @@ local function convertOldDateFormat(date)
     return res
 end
 
+local function getKeyForValue(t, value)
+    for k,v in pairs(t) do
+      if v==value then return k end
+    end
+    return nil
+  end
+
 KeyCount.util = {
     parseMsg=parseMsg,
     formatTimestamp=formatTimestamp,
@@ -139,4 +146,5 @@ KeyCount.util = {
     convertOldDateFormat=convertOldDateFormat,
     convertOldPartyFormat=convertOldPartyFormat,
     concatTable=concatTable,
+    getKeyForValue=getKeyForValue,
 }
