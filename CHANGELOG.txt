@@ -1,11 +1,7 @@
+- Stars in the gui or now colored gold
+- Added recording of dps/healing at end of dungeon (not in gui yet). Only works with the details addon enabled
+
+0.4.8-beta changelog:
 - Added option to export success rate to chat in GUI
 - Added max and min deaths to filters
 - Backend changes
-
-0.4.7-beta changelog:
-- You asked - I delivered! You can now export data to csv by typing /kcexport or click the button in the GUI
-- Now storing deaths per character in party. This data is available retroactively
-- Added ++ or +++ to dungeon timer if applicable
-- Fixed bug where deaths were not being recorded correctly causing lua errors
-- Fixed bug on setting 'stars' value in KeyCount.current. Caused dungeons to not be saved!
-- Marking key as failed should no longer bug out (checking for partysize went wrong after a previous update)

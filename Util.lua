@@ -130,6 +130,10 @@ local function convertOldDateFormat(date)
     return res
 end
 
+local function colorText(text, color)
+    return color..text..KeyCount.defaults.colors.reset
+end
+
 KeyCount.util = {
     parseMsg=parseMsg,
     formatTimestamp=formatTimestamp,
@@ -139,4 +143,5 @@ KeyCount.util = {
     convertOldDateFormat=convertOldDateFormat,
     convertOldPartyFormat=convertOldPartyFormat,
     concatTable=concatTable,
+    colorText=colorText,
 }
