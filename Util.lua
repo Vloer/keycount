@@ -134,6 +134,13 @@ local function colorText(text, color)
     return color..text..KeyCount.defaults.colors.reset
 end
 
+local function getKeyForValue(t, value)
+    for k,v in pairs(t) do
+      if v==value then return k end
+    end
+    return nil
+  end
+
 KeyCount.util = {
     parseMsg=parseMsg,
     formatTimestamp=formatTimestamp,
@@ -144,4 +151,5 @@ KeyCount.util = {
     convertOldPartyFormat=convertOldPartyFormat,
     concatTable=concatTable,
     colorText=colorText,
+    getKeyForValue=getKeyForValue,
 }
