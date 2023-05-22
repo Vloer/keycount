@@ -173,20 +173,33 @@ function GUI:ConstructGUI()
         { ["name"] = "Level",   ["width"] = 55, },
         { ["name"] = "Result",  ["width"] = 90, },
         { ["name"] = "Deaths",  ["width"] = 55,  ["KeyCount.defaultsort"] = "dsc" },
-        { ["name"] = "Time",    ["width"] = 55, },
-        { ["name"] = "Date",    ["width"] = 80, },
+        { ["name"] = "Time",    ["width"] = 60, },
+        { ["name"] = "Dps",     ["width"] = 55 },
+        { ["name"] = "Date",    ["width"] = 90, },
         { ["name"] = "Affixes", ["width"] = 200, },
     }
     local columnsRate = {
         { ["name"] = "Dungeon",      ["width"] = 150, },
         { ["name"] = "Success rate", ["width"] = 75, },
-        { ["name"] = "In time",      ["width"] = 55,  color = KeyCount.util.convertRgb(KeyCount.defaults.colors.rating
-        [5].rgb) },
-        { ["name"] = "Out of time",  ["width"] = 75,  color = KeyCount.util.convertRgb(KeyCount.defaults.colors.rating
-        [3].rgb) },
-        { ["name"] = "Abandoned",    ["width"] = 60,  color = KeyCount.util.convertRgb(KeyCount.defaults.colors.rating
-        [1].rgb) },
-        { ["name"] = "Best",         ["width"] = 55, },
+        {
+            ["name"] = "In time",
+            ["width"] = 55,
+            ["color"] = KeyCount.util.convertRgb(KeyCount.defaults.colors.rating
+                [5].rgb)
+        },
+        {
+            ["name"] = "Out of time",
+            ["width"] = 75,
+            ["color"] = KeyCount.util.convertRgb(KeyCount.defaults.colors.rating
+                [3].rgb)
+        },
+        {
+            ["name"] = "Abandoned",
+            ["width"] = 60,
+            ["color"] = KeyCount.util.convertRgb(KeyCount.defaults.colors.rating
+                [1].rgb)
+        },
+        { ["name"] = "Best", ["width"] = 55, },
     }
 
     self.tables.stL = ScrollingTable:CreateST(columnsList, 16, 16, nil, window);
@@ -218,7 +231,7 @@ GUI.defaults = {
     frame = {
         size = {
             height = 420,
-            width = 850,
+            width = 925,
         }
     },
     widgets = {

@@ -9,9 +9,10 @@ function d:getDetails()
     end
 end
 
-function d:getCombat()
+function d:getCombat(segment)
     if not self.details then self:getDetails() end
-    self.combat = self.details:GetCurrentCombat()
+    segment = segment or -1
+    self.combat = self.details:GetCombat(segment)
 end
 
 function d:getPerSecond(attribute, player)

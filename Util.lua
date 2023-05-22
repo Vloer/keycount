@@ -50,6 +50,16 @@ local function formatTimestamp(seconds)
     return string.format("%02d:%02d", minutes, remainingSeconds)
 end
 
+local function formatK(num)
+    num = tonumber(num)
+    if num >= 1000 then
+        local formatted = string.format("%.1fK", num / 1000)
+        return formatted
+    else
+        return tostring(num)
+    end
+end
+
 local function sumTbl(tbl)
     if type(tbl) ~= "table" then return end
     local res = 0
@@ -131,25 +141,37 @@ local function convertOldDateFormat(date)
 end
 
 local function colorText(text, color)
-    return color..text..KeyCount.defaults.colors.reset
+    return color .. text .. KeyCount.defaults.colors.reset
 end
 
 local function getKeyForValue(t, value)
-    for k,v in pairs(t) do
-      if v==value then return k end
+    for k, v in pairs(t) do
+        if v == value then return k end
     end
     return nil
-  end
+end
+
+-- Call this function to ensure that the code after it is still executed
+local function safeExec(name, func, ...)
+    local success, result = pcall(func, ...)
+    if success then
+        return result
+    end
+    print(string.format("%sKeyCount: %sWarning! an error occurred in function '%s'! Data may not be correct, check your SavedVariables file.%s", KeyCount.defaults.colors.chatAnnounce, KeyCount.defaults.colors.chatError, name, KeyCount.defaults.colors.reset))
+    print(string.format("%sKeyCount: %sError: %s%s", KeyCount.defaults.colors.chatAnnounce, KeyCount.defaults.colors.chatError, result, KeyCount.defaults.colors.reset))
+    return success
+end
 
 KeyCount.util = {
-    parseMsg=parseMsg,
-    formatTimestamp=formatTimestamp,
-    sumTbl=sumTbl,
-    convertRgb=convertRgb,
-    orderListByPlayer=orderListByPlayer,
-    convertOldDateFormat=convertOldDateFormat,
-    convertOldPartyFormat=convertOldPartyFormat,
-    concatTable=concatTable,
-    colorText=colorText,
-    getKeyForValue=getKeyForValue,
+    parseMsg = parseMsg,
+    formatTimestamp = formatTimestamp,
+    formatK = formatK,
+    sumTbl = sumTbl,
+    convertRgb = convertRgb,
+    orderListByPlayer = orderListByPlayer,
+    convertOldDateFormat = convertOldDateFormat,
+    convertOldPartyFormat = convertOldPartyFormat,
+    concatTable = concatTable,
+    colorText = colorText,
+    safeExec = safeExec,
 }

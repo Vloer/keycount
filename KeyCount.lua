@@ -202,19 +202,7 @@ function KeyCount:SetKeyEnd()
     if self.current.keyDetails.timeLimit == 0 then
         _, _, self.current.keyDetails.timeLimit = C_ChallengeMode.GetMapUIInfo(mapChallengeModeID)
     end
-    local detailsParty = KeyCount.details:getAll()
-    if detailsParty then
-        for player, data in pairs(detailsParty) do
-            KeyCount.current.party[player].damage = {
-                total = data.damage.total or 0,
-                dps = data.damage.dps or 0
-            }
-            KeyCount.current.party[player].healing = {
-                total = data.healing.total or 0,
-                hps = data.healing.hps or 0
-            }
-        end
-    end
+    KeyCount.util.safeExec("SetDetailsData", KeyCount.SetDetailsData, KeyCount)
     KeyCount:FinishDungeon()
     Log("Finished SetKeyEnd")
 end
@@ -319,4 +307,27 @@ function KeyCount:GetStoredDungeons()
         return nil
     end
     return KeyCountDB.dungeons
+end
+
+function KeyCount:SetDetailsData()
+    local detailsParty = KeyCount.details:getAll()
+    if detailsParty then
+        for player, data in pairs(detailsParty) do
+            local d = data.damage or {}
+            local h = data.healing or {}
+            local partyplayer = KeyCount.current.party[player] or {}
+            if next(partyplayer) then
+                KeyCount.current.party[player].damage = {
+                    total = d.total or 0,
+                    dps = d.dps or 0
+                }
+                KeyCount.current.party[player].healing = {
+                    total = h.total or 0,
+                    hps = h.hps or 0
+                }
+            else
+                printf(string.format("Warning: something likely went wrong with the recording of Details data! [%s]", player), KeyCount.defaults.colors.chatError)
+            end
+        end
+    end
 end

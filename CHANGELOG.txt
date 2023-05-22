@@ -1,5 +1,6 @@
 - Stars in the gui or now colored gold
-- Added recording of dps/healing at end of dungeon (not in gui yet). Only works with the details addon enabled
+- Added recording of dps/healing at end of dungeon. Only works with the details addon enabled
+- Added players own dps to GUI if it is available
 
 0.4.8-beta changelog:
 - Added option to export success rate to chat in GUI
