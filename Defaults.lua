@@ -9,6 +9,7 @@ local colors = {
     yellow2 = { chat = "|cfffff400", rgb = { r = 255, g = 244, b = 0, a = 1 } },
     lightgreen = { chat = "|cffa3ff00", rgb = { r = 163, g = 255, b = 0, a = 1 } },
     darkgreen = { chat = "|cff2cba00", rgb = { r = 44, g = 186, b = 0, a = 1 } },
+    gold = { chat = "|cffffd700", rgb = { r = 255, g = 215, b = 0, a = 1 } },
     reset = "|r"
 }
 local seasons = {
@@ -62,20 +63,15 @@ local defaults = {
         chatWarning = colors.yellow.chat,
         chatError = colors.red.chat,
         chatSuccess = colors.green.chat,
-        chatRating = {
-            colors.red.chat,
-            colors.orange.chat,
-            colors.yellow2.chat,
-            colors.lightgreen.chat,
-            colors.darkgreen.chat,
-        },
         rating = {
-            colors.red.rgb,
-            colors.orange.rgb,
-            colors.yellow2.rgb,
-            colors.lightgreen.rgb,
-            colors.darkgreen.rgb,
-        }
+            colors.red,
+            colors.orange,
+            colors.yellow2,
+            colors.lightgreen,
+            colors.darkgreen,
+        },
+        gold = colors.gold,
+        reset = colors.reset,
     },
     dateFormat = "%Y-%m-%d",
     datetimeFormat = "%Y-%m-%d %H:%M:%S",

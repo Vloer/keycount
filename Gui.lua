@@ -182,7 +182,6 @@ function GUI:ConstructGUI()
         { ["name"] = "Dungeon",      ["width"] = 150, },
         { ["name"] = "Attempts",     ["width"] = 55, },
         { ["name"] = "Success rate", ["width"] = 75, },
-<<<<<<< HEAD
         {
             ["name"] = "In time",
             ["width"] = 55,
@@ -202,15 +201,6 @@ function GUI:ConstructGUI()
                 [1].rgb)
         },
         { ["name"] = "Best", ["width"] = 55, },
-=======
-        { ["name"] = "In time",      ["width"] = 55,  color = KeyCount.util.convertRgb(KeyCount.defaults.colors.rating
-        [5]) },
-        { ["name"] = "Out of time",  ["width"] = 75,  color = KeyCount.util.convertRgb(KeyCount.defaults.colors.rating
-        [3]) },
-        { ["name"] = "Abandoned",    ["width"] = 60,  color = KeyCount.util.convertRgb(KeyCount.defaults.colors.rating
-        [1]) },
-        { ["name"] = "Best",         ["width"] = 55, },
->>>>>>> 1a4831c7f5e8d691f68e3cd2ec129544aefe97da
     }
 
     self.tables.stL = ScrollingTable:CreateST(columnsList, 16, 16, nil, window);

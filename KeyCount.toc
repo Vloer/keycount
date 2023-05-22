@@ -17,3 +17,5 @@ FilterFunctions.lua
 Gui.lua
 GuiPrepareData.lua
 ExportData.lua
+
+External\Details.lua
