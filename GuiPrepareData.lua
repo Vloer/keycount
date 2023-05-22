@@ -77,6 +77,19 @@ end
 local function getDungeonTime(dungeon)
     local symbol = KeyCount.defaults.dungeonPlusChar
     local s = dungeon.timeToComplete
+<<<<<<< HEAD
+    local completed = dungeon.completedInTime
+    local time = dungeon.time
+    local limit = dungeon.keyDetails.timeLimit or 0
+    local amount
+    if completed then
+        if time < (limit * 0.6) then
+            amount = 3
+        elseif time < (limit * 0.8) then
+            amount = 2
+        else
+            amount = 1
+=======
     local stars = dungeon.stars or nil
     if stars then
         s = string.format("%s%s", s, stars)
@@ -92,9 +105,35 @@ local function getDungeonTime(dungeon)
             else
                 s = string.format("%s%s", s, symbol)
             end
+>>>>>>> 1a4831c7f5e8d691f68e3cd2ec129544aefe97da
+        end
+    else
+        amount = 0
+    end
+<<<<<<< HEAD
+    s = KeyCount.util.colorText(s, timetextcolor.chat)
+    s = KeyCount.util.addSymbol(s, amount, symbol)
+=======
+>>>>>>> 1a4831c7f5e8d691f68e3cd2ec129544aefe97da
+    return s
+end
+
+local function getPlayerDps(dungeon)
+    local player = dungeon.player
+    local party = KeyCount.util.convertOldPartyFormat(dungeon.party)
+    local data = party[player] or {}
+    local damage = data["damage"] or {}
+    local dps = damage["dps"] or 0
+    if dps > 0 then
+        local dpsString = KeyCount.util.formatK(dps)
+        local topdps = KeyCount.utilstats.getTopDps(party)
+        if player == topdps.player and topdps.dps > 0 then
+            return KeyCount.util.addSymbol(dpsString, 1)
+        else
+            return dpsString
         end
     end
-    return s
+    return ""
 end
 
 local function prepareRowList(dungeon)
@@ -106,19 +145,25 @@ local function prepareRowList(dungeon)
     local deaths = dungeon.totalDeaths or 0
     local time = getDungeonTime(dungeon)
     local date = KeyCount.util.convertOldDateFormat(dungeon.date)
+    local dps = KeyCount.util.safeExec("GetPlayerDps", getPlayerDps, dungeon)
     local affixes = KeyCount.util.concatTable(dungeon.keyDetails.affixes, ", ")
     local p = getPlayerRoleAndColor(dungeon)
     local playerString = string.format("%s%s", p.roleIcon, player)
     --@debug@
-    Log(string.format("prepareRowList: [%s] [%s] [%s] [%s] [%s] [%s] [%s]", player, name, level, result.result, deaths,
-        time, date.date))
+    Log(string.format("prepareRowList: [%s] [%s] [%s] [%s] [%s] [%s] [%s] [%s]", player, name, level, result.result,
+        deaths, time, date.date, dps))
     --@end-debug@
     table.insert(row, { value = playerString, color = p.color })
     table.insert(row, { value = name })
     table.insert(row, { value = level, color = getLevelColor(level).color })
     table.insert(row, { value = result.result, color = result.color })
     table.insert(row, { value = deaths, color = getDeathsColor(deaths) })
+<<<<<<< HEAD
+    table.insert(row, { value = time })
+    table.insert(row, { value = dps })
+=======
     table.insert(row, { value = time, color = result.color })
+>>>>>>> 1a4831c7f5e8d691f68e3cd2ec129544aefe97da
     table.insert(row, { value = date.date })
     table.insert(row, { value = affixes })
     return { cols = row }
@@ -127,6 +172,7 @@ end
 local function prepareRowRate(dungeon)
     local row = {}
     local name = dungeon.name
+    local attempts = dungeon.totalAttempts
     local rate = dungeon.successRate
     local rateString = string.format("%.2f%%", rate)
     local intime = dungeon.success
@@ -134,10 +180,11 @@ local function prepareRowRate(dungeon)
     local failed = dungeon.failed
     local best = dungeon.best
     --@debug@
-    Log(string.format("prepareRowRate: [%s] [%s] [%s] [%s] [%s] [%s] [%s]", name, rate, rateString, intime, outtime,
-        failed, best))
+    Log(string.format("prepareRowRate: [%s] [%s] [%s] [%s] [%s] [%s] [%s] [%s]", name, attempts, rate, rateString, intime,
+        outtime, failed, best))
     --@end-debug@
     table.insert(row, { value = name })
+    table.insert(row, { value = attempts })
     table.insert(row, { value = rateString, color = getSuccessRateColor(rate) })
     table.insert(row, { value = intime })
     table.insert(row, { value = outtime })
