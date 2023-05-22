@@ -6,7 +6,6 @@ KeyCount.filterkeys = {}
 KeyCount.guipreparedata = {}
 KeyCount.util = {}
 KeyCount.utilstats = {}
-KeyCount.details = {}
 
 -- Event behaviour
 function KeyCount:OnEvent(event, ...)
@@ -202,19 +201,6 @@ function KeyCount:SetKeyEnd()
     if self.current.keyDetails.timeLimit == 0 then
         _, _, self.current.keyDetails.timeLimit = C_ChallengeMode.GetMapUIInfo(mapChallengeModeID)
     end
-    local detailsParty = KeyCount.details:getAll()
-    if detailsParty then
-        for player, data in pairs(detailsParty) do
-            KeyCount.current.party[player].damage = {
-                total = data.damage.total or 0,
-                dps = data.damage.dps or 0
-            }
-            KeyCount.current.party[player].healing = {
-                total = data.healing.total or 0,
-                hps = data.healing.hps or 0
-            }
-        end
-    end
     KeyCount:FinishDungeon()
     Log("Finished SetKeyEnd")
 end
@@ -231,11 +217,7 @@ function KeyCount:FinishDungeon()
 end
 
 function KeyCount:SetTimeToComplete()
-    self.current.date = {
-        date = date(self.defaults.dateFormat),
-        datestring = date(),
-        datetime = date(self.defaults.datetimeFormat)
-    }
+    self.current.date = {date = date(self.defaults.dateFormat), datestring = date(), datetime = date(self.defaults.datetimeFormat)}
     if self.current.time == 0 then
         local timeStart = self.current.startedTimestamp
         local timeEnd = self.current.completedTimestamp
@@ -250,14 +232,14 @@ function KeyCount:SetTimeToComplete()
     end
     self.current.timeToComplete = KeyCount.util.formatTimestamp(self.current.time)
     if self.current.completedInTime then
-        local s
+        local s = ""
         local symbol = self.defaults.dungeonPlusChar
         if self.current.time < (self.current.keyDetails.timeLimit * 0.6) then
-            s = symbol .. symbol .. symbol
+            s = string.format("%s%s%s%s", s, symbol, symbol, symbol)
         elseif self.current.time < (self.current.keyDetails.timeLimit * 0.8) then
-            s = symbol .. symbol
+            s = string.format("%s%s%s", s, symbol, symbol)
         else
-            s = symbol
+            s = string.format("%s%s", s, symbol)
         end
         self.current.stars = s
     end
@@ -265,7 +247,7 @@ end
 
 function KeyCount:SaveAndReset()
     Log("Called SaveAndReset")
-    local cur = table.copy({}, self.current)                 --Required to pass by value instead of reference
+    local cur = table.copy({}, self.current)            --Required to pass by value instead of reference
     local def = table.copy({}, self.defaults.dungeonDefault) --Required to pass by value instead of reference
     table.insert(self.dungeons, cur)
     table.copy(self.current, def)

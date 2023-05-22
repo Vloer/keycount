@@ -2,13 +2,13 @@ local function printDungeons(dungeons)
     for i, dungeon in ipairs(dungeons) do
         if dungeon.completedInTime then
             printf(string.format("[%s] %d: Timed %s %d (%d deaths)", dungeon.player, i, dungeon.name,
-                dungeon.keyDetails.level, dungeon.totalDeaths), KeyCount.defaults.colors.rating[5].chat)
+                dungeon.keyDetails.level, dungeon.totalDeaths), KeyCount.defaults.colors.chatRating[5])
         elseif dungeon.completed then
             printf(string.format("[%s] %d: Failed to time %s %d (%d deaths)", dungeon.player, i, dungeon.name,
-                dungeon.keyDetails.level, dungeon.totalDeaths), KeyCount.defaults.colors.rating[3].chat)
+                dungeon.keyDetails.level, dungeon.totalDeaths), KeyCount.defaults.colors.chatRating[3])
         else
             printf(string.format("[%s] %d: Abandoned %s %d (%d deaths)", dungeon.player, i, dungeon.name,
-                dungeon.keyDetails.level, dungeon.totalDeaths), KeyCount.defaults.colors.rating[1].chat)
+                dungeon.keyDetails.level, dungeon.totalDeaths), KeyCount.defaults.colors.chatRating[1])
         end
     end
 end
@@ -16,16 +16,16 @@ end
 local function printDungeonSuccessRate(tbl)
     for _, d in ipairs(tbl) do
         local colorIdx = math.floor(d.successRate / 20) + 1
-        local fmt = KeyCount.defaults.colors.rating[colorIdx].chat
+        local fmt = KeyCount.defaults.colors.chatRating[colorIdx]
         printf(string.format("%s: %.2f%% [%d/%d]", d.name, d.successRate, d.success, d.success + d.failed), fmt)
     end
 end
 
 local function chatDungeonSuccessRate(tbl)
-    local next = next
-    if not tbl or next(tbl) == nil or #tbl == 0 then return end
     local outputchannel = "PARTY"
     local numgroup = GetNumGroupMembers()
+    local next = next
+    if not tbl or next(tbl) == nil or #tbl == 0 then return end
     if numgroup == 0 then
         outputchannel = "SAY"
     elseif numgroup > 5 then

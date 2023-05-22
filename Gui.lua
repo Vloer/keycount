@@ -181,11 +181,11 @@ function GUI:ConstructGUI()
         { ["name"] = "Dungeon",      ["width"] = 150, },
         { ["name"] = "Success rate", ["width"] = 75, },
         { ["name"] = "In time",      ["width"] = 55,  color = KeyCount.util.convertRgb(KeyCount.defaults.colors.rating
-        [5].rgb) },
+        [5]) },
         { ["name"] = "Out of time",  ["width"] = 75,  color = KeyCount.util.convertRgb(KeyCount.defaults.colors.rating
-        [3].rgb) },
+        [3]) },
         { ["name"] = "Abandoned",    ["width"] = 60,  color = KeyCount.util.convertRgb(KeyCount.defaults.colors.rating
-        [1].rgb) },
+        [1]) },
         { ["name"] = "Best",         ["width"] = 55, },
     }
 

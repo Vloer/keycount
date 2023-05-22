@@ -130,6 +130,7 @@ local function convertOldDateFormat(date)
     return res
 end
 
+<<<<<<< HEAD
 local function colorText(text, color)
     return color..text..KeyCount.defaults.colors.reset
 end
@@ -141,6 +142,8 @@ local function getKeyForValue(t, value)
     return nil
   end
 
+=======
+>>>>>>> parent of 8993b8b (Changed star color in gui, recording details data at end of dungeon)
 KeyCount.util = {
     parseMsg=parseMsg,
     formatTimestamp=formatTimestamp,
@@ -150,6 +153,9 @@ KeyCount.util = {
     convertOldDateFormat=convertOldDateFormat,
     convertOldPartyFormat=convertOldPartyFormat,
     concatTable=concatTable,
+<<<<<<< HEAD
     colorText=colorText,
     getKeyForValue=getKeyForValue,
+=======
+>>>>>>> parent of 8993b8b (Changed star color in gui, recording details data at end of dungeon)
 }
