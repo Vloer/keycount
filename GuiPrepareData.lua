@@ -1,7 +1,3 @@
-local function rgb(tbl)
-    return KeyCount.util.convertRgb(tbl)
-end
-
 local function getRoleIcon(role)
     if role == "DAMAGER" then
         return "|TInterface\\AddOns\\KeyCount\\Icons\\roles:14:14:0:0:64:64:0:18:0:18|t"
@@ -46,11 +42,11 @@ end
 
 local function getResultString(dungeon)
     if dungeon.completedInTime then
-        return { result = "Timed", color = KeyCount.defaults.colors.rating[5] }
+        return { result = "Timed", color = KeyCount.util.convertRgb(KeyCount.defaults.colors.rating[5]) }
     elseif dungeon.completed then
-        return { result = "Failed to time", color = KeyCount.defaults.colors.rating[3] }
+        return { result = "Failed to time", color = KeyCount.util.convertRgb(KeyCount.defaults.colors.rating[3]) }
     else
-        return { result = "Abandoned", color = KeyCount.defaults.colors.rating[1] }
+        return { result = "Abandoned", color = KeyCount.util.convertRgb(KeyCount.defaults.colors.rating[1]) }
     end
 end
 
@@ -62,7 +58,7 @@ local function getDeathsColor(deaths)
         idx = math.floor(6 - deaths / 4)
         if idx <= 0 then idx = 1 end
     end
-    return rgb(KeyCount.defaults.colors.rating[idx].rgb)
+    return KeyCount.util.convertRgb(KeyCount.defaults.colors.rating[idx])
 end
 
 local function getSuccessRateColor(rate)
@@ -75,12 +71,13 @@ local function getSuccessRateColor(rate)
         idx = math.floor(rate / 20) + 1
         if idx <= 0 then idx = 1 end
     end
-    return rgb(KeyCount.defaults.colors.rating[idx].rgb)
+    return KeyCount.util.convertRgb(KeyCount.defaults.colors.rating[idx])
 end
 
-local function getDungeonTime(dungeon, timetextcolor)
+local function getDungeonTime(dungeon)
     local symbol = KeyCount.defaults.dungeonPlusChar
     local s = dungeon.timeToComplete
+<<<<<<< HEAD
     local completed = dungeon.completedInTime
     local time = dungeon.time
     local limit = dungeon.keyDetails.timeLimit or 0
@@ -92,12 +89,32 @@ local function getDungeonTime(dungeon, timetextcolor)
             amount = 2
         else
             amount = 1
+=======
+    local stars = dungeon.stars or nil
+    if stars then
+        s = string.format("%s%s", s, stars)
+    else
+        local completed = dungeon.completedInTime
+        local time = dungeon.time
+        local limit = dungeon.keyDetails.timeLimit or 0
+        if completed then
+            if time < (limit * 0.6) then
+                s = string.format("%s%s%s%s", s, symbol, symbol, symbol)
+            elseif time < (limit * 0.8) then
+                s = string.format("%s%s%s", s, symbol, symbol)
+            else
+                s = string.format("%s%s", s, symbol)
+            end
+>>>>>>> 1a4831c7f5e8d691f68e3cd2ec129544aefe97da
         end
     else
         amount = 0
     end
+<<<<<<< HEAD
     s = KeyCount.util.colorText(s, timetextcolor.chat)
     s = KeyCount.util.addSymbol(s, amount, symbol)
+=======
+>>>>>>> 1a4831c7f5e8d691f68e3cd2ec129544aefe97da
     return s
 end
 
@@ -126,7 +143,7 @@ local function prepareRowList(dungeon)
     local level = dungeon.keyDetails.level
     local result = getResultString(dungeon)
     local deaths = dungeon.totalDeaths or 0
-    local time = getDungeonTime(dungeon, result.color)
+    local time = getDungeonTime(dungeon)
     local date = KeyCount.util.convertOldDateFormat(dungeon.date)
     local dps = KeyCount.util.safeExec("GetPlayerDps", getPlayerDps, dungeon)
     local affixes = KeyCount.util.concatTable(dungeon.keyDetails.affixes, ", ")
@@ -139,10 +156,14 @@ local function prepareRowList(dungeon)
     table.insert(row, { value = playerString, color = p.color })
     table.insert(row, { value = name })
     table.insert(row, { value = level, color = getLevelColor(level).color })
-    table.insert(row, { value = result.result, color = rgb(result.color.rgb) })
+    table.insert(row, { value = result.result, color = result.color })
     table.insert(row, { value = deaths, color = getDeathsColor(deaths) })
+<<<<<<< HEAD
     table.insert(row, { value = time })
     table.insert(row, { value = dps })
+=======
+    table.insert(row, { value = time, color = result.color })
+>>>>>>> 1a4831c7f5e8d691f68e3cd2ec129544aefe97da
     table.insert(row, { value = date.date })
     table.insert(row, { value = affixes })
     return { cols = row }
