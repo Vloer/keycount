@@ -1,6 +1,7 @@
-- Stars in the gui or now colored gold
+- Stars in the gui are now colored gold
 - Added recording of dps/healing at end of dungeon. Only works with the details addon enabled
-- Added players own dps to GUI if it is available
+- Added players own dps to GUI if it is available, with a star if you were the top dps
+- Added total attempted dungeons in the success rate tab
 
 0.4.8-beta changelog:
 - Added option to export success rate to chat in GUI

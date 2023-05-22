@@ -17,7 +17,7 @@ local function printDungeonSuccessRate(tbl)
     for _, d in ipairs(tbl) do
         local colorIdx = math.floor(d.successRate / 20) + 1
         local fmt = KeyCount.defaults.colors.rating[colorIdx].chat
-        printf(string.format("%s: %.2f%% [%d/%d]", d.name, d.successRate, d.success, d.success + d.failed), fmt)
+        printf(string.format("%s: %.2f%% [%d/%d]", d.name, d.successRate, d.success, d.success + d.failed + d.outOfTime), fmt)
     end
 end
 
@@ -61,12 +61,13 @@ local function getDungeonSuccessRate(dungeons)
     end
     for name, d in pairs(res) do
         local successRate = 0
+        local total = d.success + d.failed + d.outOfTime
         if (d.failed + d.outOfTime) == 0 then
             successRate = 100
         elseif d.success == 0 then
             successRate = 0
         else
-            successRate = d.success / (d.success + d.failed + d.outOfTime) * 100
+            successRate = d.success / total * 100
         end
         table.insert(resRate,
             {
@@ -75,7 +76,8 @@ local function getDungeonSuccessRate(dungeons)
                 success = d.success,
                 outOfTime = d.outOfTime,
                 failed = d.failed,
-                best = d.best
+                best = d.best,
+                totalAttempts = total
             })
     end
     table.sort(resRate, function(a, b)
@@ -102,10 +104,22 @@ local function showPastDungeons()
     end
 end
 
+local function getTopDps(party)
+    local dmg = {}
+    for player, data in pairs(party) do
+       local d = data.damage or {}
+       local dps = d.dps or 0
+       table.insert(dmg, {player=player, dps=dps})
+    end
+    table.sort(dmg, function(a,b) return a.dps>b.dps end)
+    return dmg[1]
+ end
+
 KeyCount.utilstats = {
     printDungeons = printDungeons,
     printDungeonSuccessRate = printDungeonSuccessRate,
     chatDungeonSuccessRate = chatDungeonSuccessRate,
     getDungeonSuccessRate = getDungeonSuccessRate,
     showPastDungeons = showPastDungeons,
+    getTopDps = getTopDps,
 }

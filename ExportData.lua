@@ -110,6 +110,7 @@ local function formatCSV(_dungeons)
     return output
 end
 local function createDataExportFrame(_data)
+    if not _data or next(_data) == nil or #_data == 0 then return end
     local data = formatCSV(_data)
     local AceGUI = LibStub("AceGUI-3.0")
     local f = AceGUI:Create("Frame")

@@ -180,6 +180,7 @@ function GUI:ConstructGUI()
     }
     local columnsRate = {
         { ["name"] = "Dungeon",      ["width"] = 150, },
+        { ["name"] = "Attempts",     ["width"] = 55, },
         { ["name"] = "Success rate", ["width"] = 75, },
         {
             ["name"] = "In time",
