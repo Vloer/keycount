@@ -173,5 +173,6 @@ KeyCount.util = {
     convertOldPartyFormat = convertOldPartyFormat,
     concatTable = concatTable,
     colorText = colorText,
+    getKeyForValue=getKeyForValue,
     safeExec = safeExec,
 }
