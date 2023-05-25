@@ -7,6 +7,7 @@ KeyCount.guipreparedata = {}
 KeyCount.util = {}
 KeyCount.utilstats = {}
 KeyCount.details = {}
+KeyCount.formatdata = {}
 
 -- Event behaviour
 function KeyCount:OnEvent(event, ...)
@@ -307,7 +308,17 @@ function KeyCount:GetStoredDungeons()
         KeyCount.defaults.colors.chatAnnounce, KeyCount.defaults.colors.chatError, KeyCount.defaults.colors.reset))
         return nil
     end
-    return KeyCountDB.dungeons
+    local stored = {}
+    for i, d in ipairs(KeyCountDB.dungeons) do
+        --@debug@
+        Log(string.format("Checking data status for dungeon %s: %s %s", i, d.name, d.keyDetails.level))
+        --@end-debug@
+        local fixed = KeyCount.util.safeExec("FormatData", KeyCount.formatdata.format, d)
+        if fixed then
+           table.insert(stored, fixed)
+        end
+     end
+    return stored
 end
 
 function KeyCount:SetDetailsData()

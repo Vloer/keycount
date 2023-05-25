@@ -1,3 +1,5 @@
+local e = KeyCount.exportdata
+
 local function flatten(data)
     local out = {}
     for col, v in pairs(data) do
@@ -19,7 +21,7 @@ local function flatten(data)
                 out[_k] = _v
             end
         elseif col == "party" and type(v) == "table" then
-            local partydata = KeyCount.util.convertOldPartyFormat(v, data["deaths"])
+            local partydata = v
             local i = 0
             for playername, playerdata in pairs(partydata) do
                 i = i + 1
@@ -109,7 +111,8 @@ local function formatCSV(_dungeons)
 
     return output
 end
-local function createDataExportFrame(_data)
+
+function e.createFrame(_data)
     if not _data or next(_data) == nil or #_data == 0 then return end
     local data = formatCSV(_data)
     local AceGUI = LibStub("AceGUI-3.0")
@@ -132,6 +135,6 @@ local function createDataExportFrame(_data)
     f:AddChild(e)
 end
 
-KeyCount.exportdata = {
-    createFrame = createDataExportFrame
-}
+-- KeyCount.exportdata = {
+--     createFrame = createDataExportFrame
+-- }

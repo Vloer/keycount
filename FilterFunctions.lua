@@ -1,3 +1,6 @@
+local f = KeyCount.filterfunctions
+f.print = {}
+
 local function noResult()
     printf("No dungeons matched your filter criteria!", KeyCount.defaults.colors.chatWarning)
     return nil
@@ -44,7 +47,7 @@ local filterConditions = {
         return entry.keyDetails.level >= value
     end,
     ["date"] = function(entry, value)
-        return entry.date == value
+        return entry.date.date == value
     end,
     ["affix"] = function(entry, value)
         local affixes = string.lower(table.concat(entry.keyDetails.affixes))
@@ -62,7 +65,10 @@ local filterConditions = {
         return found == (#value - 1)
     end,
     ["role"] = function(entry, value)
-        return
+        local player = entry.player
+        local role = entry.party[player].role or ""
+        if value == "all" then return true end
+        return string.lower(role) == string.lower(value)
     end
 }
 
@@ -111,8 +117,20 @@ local function cleanFilterArgs(key, value)
     elseif _key == "date" then
         if #value == 0 then value = date(KeyCount.defaults.dateFormat) end
     elseif _key == "role" then
-        printf("Role filter is not yet implemented!", KeyCount.defaults.colors.chatWarning)
-        return nil, nil
+        if #value == 0  then value = "all"
+        else
+            value = string.lower(value)
+            if value == "dps" or value == "damager" or value == "damage" then
+                value = "DAMAGER"
+            elseif value == "tank" then
+                value = "TANK"
+            elseif value == "heal" or value == "healer" or value == "healing" then
+                value = "HEALER"
+            else
+                printf("Role filter accepts values 'tank', 'heal' or 'dps'!", KeyCount.defaults.colors.chatWarning)
+                return nil, nil
+            end
+        end
     end
     if _key ~= "affix" then
         Log(string.format("FILTER <%s> <%s>", _key, tostring(value)))
@@ -155,7 +173,8 @@ local function filterData(tbl, key, value)
     end
     return result
 end
-local filterDungeons = function(key, value)
+
+local function filterDungeons(key, value)
     local _dungeons = KeyCount:GetStoredDungeons()
     if not _dungeons then return end
     local filteredDungeons = filterData(_dungeons, key, value)
@@ -163,7 +182,10 @@ local filterDungeons = function(key, value)
     return filteredDungeons
 end
 
-local fListPrint = function()
+f.list = filterDungeons
+f.filter = filterDungeons
+
+function f.print.list()
     local _dungeons = filterDungeons("", "")
     if not _dungeons then return end
     local dl = KeyCount.util.orderListByPlayer(_dungeons)
@@ -172,7 +194,7 @@ local fListPrint = function()
     end
 end
 
-local fFilterPrint = function(key, value)
+function f.print.filter(key, value)
     local _dungeons = filterDungeons(key, value)
     if not _dungeons then return end
     local dl = KeyCount.util.orderListByPlayer(_dungeons)
@@ -181,36 +203,32 @@ local fFilterPrint = function(key, value)
     end
 end
 
-local fRate = function(key, value)
+function f.rate(key, value)
     local dungeons = filterDungeons(key, value)
     if dungeons then return KeyCount.utilstats.getDungeonSuccessRate(dungeons) end
 end
 
-local fRatePrint = function(key, value)
-    local dungeons = fRate(key, value)
+function f.print.rate(key, value)
+    local dungeons = f.rate(key, value)
     if dungeons then KeyCount.utilstats.printDungeonSuccessRate(dungeons) end
 end
 
-KeyCount.filterfunctions = {
-    print = {
-        list = fListPrint,
-        filter = fFilterPrint,
-        rate = fRatePrint
-    },
-    list = filterDungeons,
-    filter = filterDungeons,
-    rate = fRate
-}
+function f.grouped(key, value)
+    local dungeons  = filterDungeons(key, value)
+    if dungeons then return KeyCount.utilstats.getPlayerSuccessRate(dungeons) end
+end
 
 KeyCount.filterkeys = {
     ["alldata"] = { key = "alldata", value = "", name = "All data" },
     ["player"] = { key = "player", value = "player", name = "Player" },
     ["dungeon"] = { key = "dungeon", value = "name", name = "Dungeon" },
+    ["role"] = { key = "role", value = "role", name = "Player role" },
     ["season"] = { key = "season", value = "season", name = "Season" },
     ["completed"] = { key = "completed", value = "completed", name = "Completed" },
     ["inTime"] = { key = "inTime", value = "completedInTime", name = "Completed in time" },
     ["outTime"] = { key = "outTime", value = "outOfTime", name = "Completed out of time" },
     ["failed"] = { key = "failed", value = "failed", name = "Abandoned" },
+    ["level"] = { key = "level", value = "level", name = "Key level"},
     ["time"] = { key = "time", value = "time", name = "Time" },
     ["deathsgt"] = { key = "deathsgt", value = "deathsgt", name = "Minimum amount of deaths" },
     ["deathslt"] = { key = "deathslt", value = "deathslt", name = "Maximum amount of deaths" },
@@ -219,6 +237,6 @@ KeyCount.filterkeys = {
 }
 
 KeyCount.filterorder = {
-    "alldata", "player", "dungeon", "season",
-    "completed", "inTime", "outTime", "failed",
+    "alldata", "player", "dungeon", "role", "season",
+    "completed", "inTime", "outTime", "failed", "level",
     "time", "deathsgt", "deathslt", "date", "affix" }

@@ -38,7 +38,6 @@ This addon is still in beta development, but you can already download it from cu
     - Add option tickboxes to show specific columns
       - Note, affixes, party, details stuff
     - Make GUI side scrollable if it gets too large?
-    - grouped players success rate
 
 ## Notes section
     - At the end of a failed run ask player for a note on that run (popup?)
@@ -46,6 +45,7 @@ This addon is still in beta development, but you can already download it from cu
     - Add 'notes' column to gui (with mouseover or side scrollable)
 
 ## Data filter
-    - Add role filter
 
 ## Data storage
+
+## Bugs

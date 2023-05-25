@@ -37,7 +37,22 @@ local defaults = {
         UR = "The Underrot",
         VP = "Vortex Pinnacle"
     },
+    partymember = {
+        role = "",
+        class = "",
+        name = "",
+        deaths = 0,
+        healing = {
+            total = 0,
+            hps = 0
+        },
+        damage = {
+            total = 0,
+            dps = 0
+        }
+    },
     dungeonDefault = {
+        version = 1,
         season = seasons.Dragonflight[2],
         player = "",
         name = "",
@@ -55,7 +70,7 @@ local defaults = {
             affixes = {},
             timeLimit = 0,
         },
-        date = { ["date"] = "", ["datestring"] = "", ["datetime"] = "" },
+        date = { ["date"] = "1900-01-01", ["datestring"] = "", ["datetime"] = "1900-01-01 00:00:00" },
         stars = ""
     },
     colors = {

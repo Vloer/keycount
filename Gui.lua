@@ -44,18 +44,32 @@ function GUI:ConstructGUI()
         if not self.dungeons then
             self.data = {}
         else
+            --@debug@
+            Log(string.format("Found %s dungeons", #self.dungeons))
+            --@end-debug@
             self.data = KeyCount.guipreparedata[self.filtertype](self.dungeons)
         end
+        --@debug@
+        Log(string.format("Data has %s entries", #self.data))
+        --@end-debug@
         if self.filtertype == "rate" then
-            self.tables.stL:Hide()
-            self.tables.stR:Show()
-            self.tables.stR:SetData(self.data)
-            self.tables.stR:Refresh()
+            self.tables.list:Hide()
+            self.tables.grouped:Hide()
+            self.tables.rate:Show()
+            self.tables.rate:SetData(self.data)
+            self.tables.rate:Refresh()
+        elseif self.filtertype == "grouped" then
+            self.tables.list:Hide()
+            self.tables.rate:Hide()
+            self.tables.grouped:Show()
+            self.tables.grouped:SetData(self.data)
+            self.tables.grouped:Refresh()
         else
-            self.tables.stR:Hide()
-            self.tables.stL:Show()
-            self.tables.stL:SetData(self.data)
-            self.tables.stL:Refresh()
+            self.tables.rate:Hide()
+            self.tables.grouped:Hide()
+            self.tables.list:Show()
+            self.tables.list:SetData(self.data)
+            self.tables.list:Refresh()
         end
     end
 
@@ -63,20 +77,28 @@ function GUI:ConstructGUI()
         self.filtertype = item
         if self.filtertype == "list" then
             disableFilters(true)
-            self.tables.stR:Hide()
-            self.tables.stL:Show()
+            self.tables.rate:Hide()
+            self.tables.list:Show()
+            self.tables.grouped:Hide()
             self.buttons.exportdata:SetText("Export to CSV")
         else
             disableFilters(false)
             setFilterKeyValue()
             self.key = self.filter.value
             if self.filtertype == "filter" then
-                self.tables.stR:Hide()
-                self.tables.stL:Show()
+                self.tables.rate:Hide()
+                self.tables.list:Show()
+                self.tables.grouped:Hide()
                 self.buttons.exportdata:SetText("Export to CSV")
-            else --rate
-                self.tables.stL:Hide()
-                self.tables.stR:Show()
+            elseif self.filtertype == "rate" then
+                self.tables.rate:Show()
+                self.tables.list:Hide()
+                self.tables.grouped:Hide()
+                self.buttons.exportdata:SetText("Export to party")
+            elseif self.filtertype == "grouped" then
+                self.tables.rate:Hide()
+                self.tables.list:Hide()
+                self.tables.grouped:Show()
                 self.buttons.exportdata:SetText("Export to party")
             end
         end
@@ -129,6 +151,7 @@ function GUI:ConstructGUI()
     self.boxes.filterType:AddItem("list", "All data")
     self.boxes.filterType:AddItem("filter", "Filter")
     self.boxes.filterType:AddItem("rate", "Success rate")
+    self.boxes.filterType:AddItem("grouped", "Player success rate")
     self.boxes.filterType:SetCallback("OnValueChanged", function(widget, event, item) c_FilterType(item) end)
     self.boxes.filterType:SetValue("list")
     frame:AddChild(self.boxes.filterType)
@@ -200,24 +223,60 @@ function GUI:ConstructGUI()
             ["color"] = KeyCount.util.convertRgb(KeyCount.defaults.colors.rating
                 [1].rgb)
         },
-        { ["name"] = "Best", ["width"] = 55, },
+        { ["name"] = "Best",    ["width"] = 55, },
+        { ["name"] = "Median",  ["width"] = 55, },
+        { ["name"] = "Max dps", ["width"] = 55, },
     }
 
-    self.tables.stL = ScrollingTable:CreateST(columnsList, 16, 16, nil, window);
-    self.tables.stL.frame:SetPoint("TOP", window, "TOP", 0, -100);
-    self.tables.stL.frame:SetPoint("LEFT", window, "LEFT", 15, 0);
-    self.tables.stL:EnableSelection(true)
-    self.tables.stL:Hide()
+    local columnsGrouped = {
+        { ["name"] = "Player",       ["width"] = 150, },
+        { ["name"] = "Amount",       ["width"] = 55, },
+        { ["name"] = "Success rate", ["width"] = 75, },
+        {
+            ["name"] = "In time",
+            ["width"] = 55,
+            ["color"] = KeyCount.util.convertRgb(KeyCount.defaults.colors.rating
+                [5].rgb)
+        },
+        {
+            ["name"] = "Out of time",
+            ["width"] = 75,
+            ["color"] = KeyCount.util.convertRgb(KeyCount.defaults.colors.rating
+                [3].rgb)
+        },
+        {
+            ["name"] = "Abandoned",
+            ["width"] = 60,
+            ["color"] = KeyCount.util.convertRgb(KeyCount.defaults.colors.rating
+                [1].rgb)
+        },
+        { ["name"] = "Best",    ["width"] = 55, },
+        { ["name"] = "Median",  ["width"] = 55, },
+        { ["name"] = "Max dps", ["width"] = 55, },
+    }
 
-    self.tables.stR = ScrollingTable:CreateST(columnsRate, 8, 16, nil, window);
-    self.tables.stR.frame:SetPoint("TOP", window, "TOP", 0, -100);
-    self.tables.stR.frame:SetPoint("LEFT", window, "LEFT", 15, 0);
-    self.tables.stR:EnableSelection(true)
-    self.tables.stR:Hide()
+    self.tables.list = ScrollingTable:CreateST(columnsList, 16, 16, nil, window);
+    self.tables.list.frame:SetPoint("TOP", window, "TOP", 0, -100);
+    self.tables.list.frame:SetPoint("LEFT", window, "LEFT", 15, 0);
+    self.tables.list:EnableSelection(true)
+    self.tables.list:Hide()
+
+    self.tables.rate = ScrollingTable:CreateST(columnsRate, 8, 16, nil, window);
+    self.tables.rate.frame:SetPoint("TOP", window, "TOP", 0, -100);
+    self.tables.rate.frame:SetPoint("LEFT", window, "LEFT", 15, 0);
+    self.tables.rate:EnableSelection(true)
+    self.tables.rate:Hide()
+
+    self.tables.grouped = ScrollingTable:CreateST(columnsGrouped, 8, 16, nil, window);
+    self.tables.grouped.frame:SetPoint("TOP", window, "TOP", 0, -100);
+    self.tables.grouped.frame:SetPoint("LEFT", window, "LEFT", 15, 0);
+    self.tables.grouped:EnableSelection(true)
+    self.tables.grouped:Hide()
 
     frame:SetCallback("OnClose", function()
-        self.tables.stL:Hide()
-        self.tables.stR:Hide()
+        self.tables.list:Hide()
+        self.tables.rate:Hide()
+        self.tables.grouped:Hide()
     end)
 
     -- Required to exit interface on escape press
@@ -243,7 +302,7 @@ GUI.defaults = {
     },
     boxes = {
         filterType = {
-            width = 100,
+            width = 140,
             text = "Filter type"
         },
         filterKey = {
