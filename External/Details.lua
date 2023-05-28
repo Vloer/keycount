@@ -69,4 +69,11 @@ function d:getAll()
     return party
 end
 
+function d:resetCombat()
+    if self.combat then
+        self.combat = nil
+        Log("Details combat data has been reset")
+    end
+end
+
 KeyCount.details = d

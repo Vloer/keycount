@@ -341,5 +341,6 @@ function KeyCount:SetDetailsData()
                 printf(string.format("Warning: something likely went wrong with the recording of Details data! [%s]", player), self.defaults.colors.chatError)
             end
         end
+        self.details:resetCombat()
     end
 end
