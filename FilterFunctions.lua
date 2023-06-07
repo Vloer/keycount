@@ -1,8 +1,8 @@
 local f = KeyCount.filterfunctions
-f.print = {}
+KeyCount.filterfunctions.print = {}
 
 local function noResult()
-    printf("No dungeons matched your filter criteria!", KeyCount.defaults.colors.chatWarning)
+    printf("No dungeons matched your filter criteria!", KeyCount.defaults.colors.chatWarning, true)
     return nil
 end
 
@@ -22,14 +22,8 @@ local filterConditions = {
     ["completed"] = function(entry, value)
         return entry["completed"] == value
     end,
-    ["completedInTime"] = function(entry, value)
-        return entry["completedInTime"] == value
-    end,
-    ["outOfTime"] = function(entry, value)
-        if entry["completedInTime"] == value and entry["completed"] == true then return true end
-    end,
-    ["failed"] = function(entry, value)
-        return entry["completed"] == value
+    ["keyresult"] = function(entry, value)
+        return entry["keyresult"]["value"] == value
     end,
     ["time"] = function(entry, value)
         local res = entry["time"] or 0
@@ -44,13 +38,13 @@ local filterConditions = {
         return res <= value
     end,
     ["level"] = function(entry, value)
-        return entry.keyDetails.level >= value
+        return entry.keydata.level >= value
     end,
     ["date"] = function(entry, value)
         return entry.date.date == value
     end,
     ["affix"] = function(entry, value)
-        local affixes = string.lower(table.concat(entry.keyDetails.affixes))
+        local affixes = string.lower(table.concat(entry.keydata.affixes))
         local found = 0
         for i = 2, #value do
             if string.find(affixes, value[i]) then
@@ -72,6 +66,11 @@ local filterConditions = {
     end
 }
 
+---Gets the correct key and values for specified keys and values
+---@param key string
+---@param value any
+---@return string|nil key
+---@return any value
 local function cleanFilterArgs(key, value)
     if #key == 0 and #value == 0 then
         return KeyCount.defaults.filter.key, KeyCount.defaults.filter.value
@@ -89,14 +88,15 @@ local function cleanFilterArgs(key, value)
         if not value then return nil, nil end
     elseif _key == "completed" then
         value = true
-    elseif _key == "intime" or _key == "completedintime" then
-        _key = "completedInTime"
-        value = true
-    elseif _key == "outoftime" then
-        _key = "outOfTime"
-        value = false
-    elseif _key == "failed" then
-        value = false
+    elseif _key == "intime" then
+        _key = "keyresult"
+        value = KeyCount.defaults.keyresult.intime.value
+    elseif _key == "outtime" then
+        _key = "keyresult"
+        value = KeyCount.defaults.keyresult.outtime.value
+    elseif _key == "abandoned" then
+        _key = "keyresult"
+        value = KeyCount.defaults.keyresult.abandoned.value
     elseif _key == "time" or _key == "deathsgt" or _key == "deathslt" or _key == "level" then
         value = tonumber(value) or 0
     elseif _key == "affix" and #value ~= 0 then
@@ -182,10 +182,10 @@ local function filterDungeons(key, value)
     return filteredDungeons
 end
 
-f.list = filterDungeons
-f.filter = filterDungeons
+KeyCount.filterfunctions.list = filterDungeons
+KeyCount.filterfunctions.filter = filterDungeons
 
-function f.print.list()
+function KeyCount.filterfunctions.print.list()
     local _dungeons = filterDungeons("", "")
     if not _dungeons then return end
     local dl = KeyCount.util.orderListByPlayer(_dungeons)
@@ -194,7 +194,7 @@ function f.print.list()
     end
 end
 
-function f.print.filter(key, value)
+function KeyCount.filterfunctions.print.filter(key, value)
     local _dungeons = filterDungeons(key, value)
     if not _dungeons then return end
     local dl = KeyCount.util.orderListByPlayer(_dungeons)
@@ -203,18 +203,18 @@ function f.print.filter(key, value)
     end
 end
 
-function f.rate(key, value)
+function KeyCount.filterfunctions.rate(key, value)
     local dungeons = filterDungeons(key, value)
     if dungeons then return KeyCount.utilstats.getDungeonSuccessRate(dungeons) end
 end
 
-function f.print.rate(key, value)
-    local dungeons = f.rate(key, value)
+function KeyCount.filterfunctions.print.rate(key, value)
+    local dungeons = KeyCount.filterfunctions.rate(key, value)
     if dungeons then KeyCount.utilstats.printDungeonSuccessRate(dungeons) end
 end
 
-function f.grouped(key, value)
-    local dungeons  = filterDungeons(key, value)
+function KeyCount.filterfunctions.grouped(key, value)
+    local dungeons = filterDungeons(key, value)
     if dungeons then return KeyCount.utilstats.getPlayerSuccessRate(dungeons) end
 end
 
@@ -225,10 +225,10 @@ KeyCount.filterkeys = {
     ["role"] = { key = "role", value = "role", name = "Player role" },
     ["season"] = { key = "season", value = "season", name = "Season" },
     ["completed"] = { key = "completed", value = "completed", name = "Completed" },
-    ["inTime"] = { key = "inTime", value = "completedInTime", name = "Completed in time" },
-    ["outTime"] = { key = "outTime", value = "outOfTime", name = "Completed out of time" },
-    ["failed"] = { key = "failed", value = "failed", name = "Abandoned" },
-    ["level"] = { key = "level", value = "level", name = "Key level"},
+    ["intime"] = { key = "intime", value = "intime", name = "Completed in time" },
+    ["outtime"] = { key = "outtime", value = "outtime", name = "Completed out of time" },
+    ["abandoned"] = { key = "abandoned", value = "abandoned", name = "Abandoned" },
+    ["level"] = { key = "level", value = "level", name = "Key level" },
     ["time"] = { key = "time", value = "time", name = "Time" },
     ["deathsgt"] = { key = "deathsgt", value = "deathsgt", name = "Minimum amount of deaths" },
     ["deathslt"] = { key = "deathslt", value = "deathslt", name = "Maximum amount of deaths" },

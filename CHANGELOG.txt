@@ -1,4 +1,8 @@
-- Fixed bug where player damage/healing was not being stored correctly in some cases
+- Added party damage and healing to csv export
+- Disabled filter edit box when necessary
+- Improved backend for player success rate
+- Addon now fixes all database entries once on login
+- Added which filter is used to party export message
 
 v0.5 changelog:
 - Added "Player success rate" tab. Shows amount of times you have grouped with each unique player and the success rate with that player.
@@ -7,3 +11,4 @@ v0.5 changelog:
 - Added season to csv export 
 - Fixed a bug in date filter, should now work properly
 - Backend improvements: dungeon data in old format should now be converted, reducing chance for errors
+- Fixed bug where player damage/healing was not being stored correctly in some cases

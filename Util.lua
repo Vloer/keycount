@@ -8,10 +8,16 @@ end
 
 ---Prints a colored chat message
 ---@param msg string Message to print
----@param fmt string Color format. Defaults to cyan
-function printf(msg, fmt)
+---@param fmt string|nil Color format. Defaults to cyan
+---@param includeKeycount boolean|nil Set to true to add "Keycount: " to start of the message
+function printf(msg, fmt, includeKeycount)
     fmt = fmt or KeyCount.defaults.colors.chatAnnounce
-    print(string.format("%s%s|r", fmt, msg))
+    includeKeycount = includeKeycount or false
+    if includeKeycount then
+        print(string.format("%sKeyCount: %s%s|r", KeyCount.defaults.colors.chatAnnounce, fmt, msg))
+    else
+        print(string.format("%s%s|r", fmt, msg))
+    end
 end
 
 -- Checks two tables for equality
@@ -50,19 +56,19 @@ table.copy = function(destination, source)
     return destination
 end
 
-util.parseMsg = function(msg)
+KeyCount.util.parseMsg = function(msg)
     if not msg or #msg == 0 then return "", "" end
     local _, _, key, value = string.find(msg, "%s?(%w+)%s?(.*)")
     return key, value
 end
 
-util.formatTimestamp = function(seconds)
+KeyCount.util.formatTimestamp = function(seconds)
     local minutes = math.floor(seconds / 60)
     local remainingSeconds = seconds - (minutes * 60)
     return string.format("%02d:%02d", minutes, remainingSeconds)
 end
 
-util.formatK = function(num)
+KeyCount.util.formatK = function(num)
     num = tonumber(num)
     if num >= 1000 then
         local formatted = string.format("%.1fK", num / 1000)
@@ -72,7 +78,7 @@ util.formatK = function(num)
     end
 end
 
-util.sumTbl = function(tbl)
+KeyCount.util.sumTbl = function(tbl)
     if type(tbl) ~= "table" then return end
     local res = 0
     for k, v in pairs(tbl) do
@@ -83,7 +89,7 @@ util.sumTbl = function(tbl)
     return res
 end
 
-util.convertRgb = function(colorTable)
+KeyCount.util.convertRgb = function(colorTable)
     local normalizedTable = {}
     for key, value in pairs(colorTable) do
         if type(value) == "number" and value > 1 then
@@ -95,7 +101,7 @@ util.convertRgb = function(colorTable)
     return normalizedTable
 end
 
-util.orderListByPlayer = function(dungeons)
+KeyCount.util.orderListByPlayer = function(dungeons)
     local dl = {}
     for _, dungeon in pairs(dungeons) do
         local player = dungeon.player
@@ -105,7 +111,7 @@ util.orderListByPlayer = function(dungeons)
     return dl
 end
 
-util.concatTable = function(table, delimiter)
+KeyCount.util.concatTable = function(table, delimiter)
     local concatenatedString = ""
     for i, value in ipairs(table) do
         concatenatedString = concatenatedString .. tostring(value)
@@ -116,11 +122,11 @@ util.concatTable = function(table, delimiter)
     return concatenatedString
 end
 
-util.colorText = function(text, color)
+KeyCount.util.colorText = function(text, color)
     return color .. text .. KeyCount.defaults.colors.reset
 end
 
-util.getKeyForValue = function(t, value)
+KeyCount.util.getKeyForValue = function(t, value)
     for k, v in pairs(t) do
         if v == value then return k end
     end
@@ -131,7 +137,7 @@ end
 ---@param name string Name to display in print statement
 ---@param func function Function to executed
 ---@param ... any Function arguments seperated by comma
-util.safeExec = function(name, func, ...)
+KeyCount.util.safeExec = function(name, func, ...)
     local success, result = pcall(func, ...)
     if success then
         return result
@@ -148,26 +154,26 @@ end
 -- Add symbol to the end of a string
 ---@param text string Base string
 ---@param amount number Amount of symbols to add
----@param symbol string Symbol to add. Defaults to *
----@param color string Formatted color hex string. Defaults to gold
-util.addSymbol = function(text, amount, symbol, color)
+---@param symbol string|nil Symbol to add. Defaults to *
+---@param color string|nil Formatted color hex string. Defaults to gold
+KeyCount.util.addSymbol = function(text, amount, symbol, color)
     color = color or KeyCount.defaults.colors.gold.chat
     symbol = symbol or KeyCount.defaults.dungeonPlusChar
-    local symbols = util.colorText(symbol:rep(amount), color)
+    local symbols = KeyCount.util.colorText(symbol:rep(amount), color)
     return text .. symbols
 end
 
 -- Print all key,value pairs to the log
 ---@param table table Data
 ---@param name string Name of the table or function to display
-util.printTableOnSameLine = function(table, name)
+KeyCount.util.printTableOnSameLine = function(table, name)
     local output = ""
     name = name or ""
     for key, value in pairs(table) do
-        if type(value) == "string" then
-            output = output .. key .. ": " .. value .. ", "
-        else
+        if type(value) == "table" then
             output = output .. key .. ": " .. type(value) .. ", "
+        else
+            output = output .. key .. ": " .. tostring(value) .. ", "
         end
     end
     output = output:sub(1, -3)
@@ -176,7 +182,7 @@ end
 
 -- Calculate the median of a list of values
 ---@param list table List that should not contain nil or nan values
-util.calculateMedian = function(list)
+KeyCount.util.calculateMedian = function(list)
     table.sort(list)
 
     local length = #list
@@ -187,4 +193,18 @@ util.calculateMedian = function(list)
     else
         return math.ceil((list[middleIndex] + list[middleIndex + 1]) / 2)
     end
+end
+
+-- Extract all values of a single key in a list of tables
+---@param tbl table The list of tables too look in
+---@param key string The key in the table to get data from
+---@return table|nil ListOfValues
+KeyCount.util.getListOfValues = function(tbl, key)
+    local res = {}
+    for _, data in ipairs(tbl) do
+        local d = data[key]
+        if d then table.insert(res, d) end
+    end
+    if not next(res) then return nil end
+    return res
 end

@@ -49,6 +49,7 @@ This addon is still in beta development, but you can already download it from cu
     - Add 'notes' column to gui (with mouseover or side scrollable)
 
 ## Data filter
+    - Add filter for current week
 
 ## Data storage
 

@@ -50,13 +50,13 @@ local function getLevelColor(level)
     return { color = color, hex = hex }
 end
 
-local function getResultString(dungeon)
-    if dungeon.completedInTime then
-        return { result = "Timed", color = KeyCount.defaults.colors.rating[5] }
-    elseif dungeon.completed then
-        return { result = "Failed to time", color = KeyCount.defaults.colors.rating[3] }
-    else
-        return { result = "Abandoned", color = KeyCount.defaults.colors.rating[1] }
+local function getResultColor(dungeon)
+    if dungeon.keyresult.value == KeyCount.defaults.keyresult.intime.value then
+        return KeyCount.defaults.colors.rating[5]
+    elseif dungeon.keyresult.value == KeyCount.defaults.keyresult.outtime.value then
+        return KeyCount.defaults.colors.rating[3]
+    elseif dungeon.keyresult.value == KeyCount.defaults.keyresult.abandoned.value then
+        return KeyCount.defaults.colors.rating[1]
     end
 end
 
@@ -87,11 +87,11 @@ end
 local function getDungeonTime(dungeon, timetextcolor)
     local symbol = KeyCount.defaults.dungeonPlusChar
     local s = dungeon.timeToComplete
-    local completed = dungeon.completedInTime
+    local result = dungeon.keyresult.value
     local time = dungeon.time
-    local limit = dungeon.keyDetails.timeLimit or 0
+    local limit = dungeon.keydata.timelimit or 0
     local amount
-    if completed then
+    if result >= KeyCount.defaults.keyresult.intime.value then
         if time < (limit * 0.6) then
             amount = 3
         elseif time < (limit * 0.8) then
@@ -106,6 +106,7 @@ local function getDungeonTime(dungeon, timetextcolor)
     s = KeyCount.util.addSymbol(s, amount, symbol)
     return s
 end
+
 local function formatDps(dps)
     local default = ""
     if type(dps) ~= "number" then return default end
@@ -135,13 +136,14 @@ local function prepareRowList(dungeon)
     local row = {}
     local player = dungeon.player
     local name = dungeon.name
-    local level = dungeon.keyDetails.level
-    local result = getResultString(dungeon)
+    local level = dungeon.keydata.level
+    local result = dungeon.keyresult.name
+    local resultColor = getResultColor(dungeon)
     local deaths = dungeon.totalDeaths or 0
-    local time = getDungeonTime(dungeon, result.color)
+    local time = getDungeonTime(dungeon, resultColor)
     local date = dungeon.date.date
     local dps = KeyCount.util.safeExec("GetPlayerDps", getPlayerDpsString, dungeon)
-    local affixes = KeyCount.util.concatTable(dungeon.keyDetails.affixes, ", ")
+    local affixes = KeyCount.util.concatTable(dungeon.keydata.affixes, ", ")
     local class, role = getClassAndRoleFromDungeon(dungeon)
     local p = getPlayerRoleAndColor(class, role)
     local playerString = p.roleIcon .. player
@@ -151,7 +153,7 @@ local function prepareRowList(dungeon)
     table.insert(row, { value = playerString, color = p.color })
     table.insert(row, { value = name })
     table.insert(row, { value = level, color = getLevelColor(level).color })
-    table.insert(row, { value = result.result, color = rgb(result.color.rgb) })
+    table.insert(row, { value = result, color = rgb(resultColor.rgb) })
     table.insert(row, { value = deaths, color = getDeathsColor(deaths) })
     table.insert(row, { value = time })
     table.insert(row, { value = dps })
@@ -163,12 +165,12 @@ end
 local function prepareRowRate(dungeon)
     local row = {}
     local name = dungeon.name
-    local attempts = dungeon.totalAttempts
+    local attempts = dungeon.totalEntries
     local rate = dungeon.successRate
     local rateString = string.format("%.2f%%", rate)
-    local intime = dungeon.success
-    local outtime = dungeon.outOfTime
-    local failed = dungeon.failed
+    local intime = dungeon.intime
+    local outtime = dungeon.outtime
+    local abandoned = dungeon.abandoned
     local best = dungeon.best
     local median = dungeon.median
     local dps = formatDps(dungeon.maxdps)
@@ -180,7 +182,7 @@ local function prepareRowRate(dungeon)
     table.insert(row, { value = rateString, color = getSuccessRateColor(rate) })
     table.insert(row, { value = intime })
     table.insert(row, { value = outtime })
-    table.insert(row, { value = failed })
+    table.insert(row, { value = abandoned })
     table.insert(row, { value = best, color = getLevelColor(best).color })
     table.insert(row, { value = median, color = getLevelColor(median).color })
     table.insert(row, { value = dps })
@@ -193,12 +195,12 @@ local function prepareRowGrouped(player)
     --@end-debug@
     local row = {}
     local name = player.name
-    local amount = player.amount
+    local amount = player.totalEntries
     local rate = player.successRate
     local rateString = string.format("%.2f%%", rate)
-    local intime = player.success
-    local outtime = player.outOfTime
-    local failed = player.failed
+    local intime = player.intime
+    local outtime = player.outtime
+    local abandoned = player.abandoned
     local best = player.best
     local median = player.median
     local dps = formatDps(player.maxdps)
@@ -213,7 +215,7 @@ local function prepareRowGrouped(player)
     table.insert(row, { value = rateString, color = getSuccessRateColor(rate) })
     table.insert(row, { value = intime })
     table.insert(row, { value = outtime })
-    table.insert(row, { value = failed })
+    table.insert(row, { value = abandoned })
     table.insert(row, { value = best, color = getLevelColor(best).color })
     table.insert(row, { value = median, color = getLevelColor(median).color })
     table.insert(row, { value = dps })
@@ -229,10 +231,10 @@ local function prepareList(dungeons)
     return data
 end
 
-g.list = prepareList
-g.filter = prepareList
+KeyCount.guipreparedata.list = prepareList
+KeyCount.guipreparedata.filter = prepareList
 
-function g.rate(dungeons)
+function KeyCount.guipreparedata.rate(dungeons)
     local data = {}
     for _, dungeon in ipairs(dungeons) do
         local row = prepareRowRate(dungeon)
@@ -241,7 +243,7 @@ function g.rate(dungeons)
     return data
 end
 
-function g.grouped(players)
+function KeyCount.guipreparedata.grouped(players)
     local data = {}
     for player, playerdata in ipairs(players) do
         local row = prepareRowGrouped(playerdata)

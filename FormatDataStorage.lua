@@ -1,15 +1,16 @@
-local f = KeyCount.formatdata
-
 -- Format the dungeon storage object to the most recent version to avoid any errors
 ---@param dungeonIn table Dungeon data
----@param new number Desired version number. Defaults to latest
 ---@return table dungeon Updated dungeon data
-function f.format(dungeonIn, new)
+function KeyCount.formatdata.format(dungeonIn)
     local dungeon = table.copy({}, dungeonIn)
     local old = dungeon["version"] or 0
-    new = new or KeyCount.defaults.dungeonDefault.version
+    local new = KeyCount.defaults.dungeonDefault.version
     if old == new then return dungeon end
-    if old == 0 and new == 1 then
+    local level = dungeon.keyDetails.level or dungeon.keydata.level or 0
+    local debuglog = string.format("Formatted data for [%s %s] from version %s", dungeon.name, level, old)
+
+    -- 0 to 1
+    if old == 0 and new >= 1 then
         dungeon["version"] = old
 
         -- Fix party
@@ -56,7 +57,7 @@ function f.format(dungeonIn, new)
         else
             newdate = KeyCount.defaults.dungeonDefault.date
         end
-        dungeon.date = newdate
+        dungeon["date"] = newdate
 
         -- Add stars
         if dungeon.completedInTime and dungeon.keyDetails.timeLimit then
@@ -69,20 +70,59 @@ function f.format(dungeonIn, new)
             else
                 s = symbol
             end
-            dungeon.stars = s
+            dungeon["stars"] = s
         else
-            dungeon.stars = ""
+            dungeon["stars"] = ""
         end
+
+        -- Set old version to new so the transformation can continue if needed
+        old = 1
+        dungeon["version"] = old
+        debuglog = string.format("%s to version %s", debuglog, old)
     end
 
+    -- 1 to 2
+    if old == 1 and new >= 2 then
+        -- Rename keyDetails and timeLimit
+        if not dungeon["keydata"] then
+            local keydata = {}
+            keydata["name"] = dungeon.name
+            keydata["level"] = dungeon.keyDetails.level
+            keydata["timelimit"] = dungeon.keyDetails.timeLimit
+            keydata["affixes"] = dungeon.keyDetails.affixes
+            dungeon["keydata"] = keydata
+        end
+
+        -- Store dungeon result
+        if not dungeon["keyresult"] then
+            local dungeonresult
+            if dungeon.completedInTime then
+                dungeonresult = KeyCount.defaults.keyresult.intime
+            elseif dungeon.completed then
+                dungeonresult = KeyCount.defaults.keyresult.outtime
+            else
+                dungeonresult = KeyCount.defaults.keyresult.abandoned
+            end
+            dungeon["keyresult"] = dungeonresult
+        end
+
+        dungeon["completedInTime"] = nil
+        dungeon["keyDetails"] = nil
+
+        old = 2
+        dungeon["version"] = old
+        debuglog = string.format("%s to version %s", debuglog, old)
+    end
+    --@debug@
+    Log(debuglog)
+    --@end-debug@
     return dungeon
 end
-
 
 --[[
 Dungeon storage version changelog:
 0 - Everything before implementation of version system
-1 - 
+1 -
     - Added party member name as table name of the party data
     - Added deaths per party member
     - Added damage and healing per party member
@@ -92,5 +132,8 @@ Dungeon storage version changelog:
     - Removed usedOwnKey
     - Added stars
     - Added version
-
+2 -
+    - Changed keyDetails to keydata
+    - Changed timeLimit to timelimit
+    - Removed completed/completedintime and added keyresult
 ]]

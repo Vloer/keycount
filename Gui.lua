@@ -6,6 +6,7 @@ function GUI:ConstructGUI()
     self.buttons = {}
     self.dungeons = {}
     self.data = {}
+    self.dataLoadedForExport = false
     local AceGUI = LibStub("AceGUI-3.0")
 
     local function resetFilters()
@@ -33,6 +34,18 @@ function GUI:ConstructGUI()
     local function resetFilterValue()
         self.widgets.filterValue:SetText("")
         self.value = ""
+    end
+
+    local function checkDisableFilterValue()
+        if self.filter.key == "intime" or
+            self.filter.key == "outtime" or
+            self.filter.key == "abandoned" or
+            self.filter.key == "completed" or
+            self.filter.key == "alldata" then
+            self.widgets.filterValue:SetDisabled(true)
+        else
+            self.widgets.filterValue:SetDisabled(false)
+        end
     end
 
     local function fillTable()
@@ -71,10 +84,12 @@ function GUI:ConstructGUI()
             self.tables.list:SetData(self.data)
             self.tables.list:Refresh()
         end
+        self.dataLoadedForExport = true
     end
 
     local function c_FilterType(item)
         self.filtertype = item
+        self.dataLoadedForExport = false
         if self.filtertype == "list" then
             disableFilters(true)
             self.tables.rate:Hide()
@@ -99,7 +114,7 @@ function GUI:ConstructGUI()
                 self.tables.rate:Hide()
                 self.tables.list:Hide()
                 self.tables.grouped:Show()
-                self.buttons.exportdata:SetText("Export to party")
+                self.buttons.exportdata:SetText("Export to CSV")
             end
         end
     end
@@ -109,6 +124,7 @@ function GUI:ConstructGUI()
         self.boxes.filterKey:SetText(self.filter.name)
         self.key = self.filter.value
         resetFilterValue()
+        checkDisableFilterValue()
     end
 
     local function c_FilterValue(text)
@@ -126,8 +142,12 @@ function GUI:ConstructGUI()
     end
 
     local function c_ExportData()
-        if self.filtertype == "rate" then
-            KeyCount.utilstats.chatDungeonSuccessRate(self.dungeons)
+        if not self.dataLoadedForExport then
+            printf("No data is loaded to be exported! Press 'show data' first!", KeyCount.defaults.colors.chatWarning, true)
+            return
+        end
+        if self.filtertype == "rate" or self.filtertype == "grouped" then
+            KeyCount.utilstats.chatSuccessRate(self.dungeons)
         else
             KeyCount.exportdata.createFrame(self.dungeons)
         end
@@ -206,19 +226,19 @@ function GUI:ConstructGUI()
         { ["name"] = "Attempts",     ["width"] = 55, },
         { ["name"] = "Success rate", ["width"] = 75, },
         {
-            ["name"] = "In time",
+            ["name"] = KeyCount.defaults.keyresult.intime.name,
             ["width"] = 55,
             ["color"] = KeyCount.util.convertRgb(KeyCount.defaults.colors.rating
                 [5].rgb)
         },
         {
-            ["name"] = "Out of time",
+            ["name"] = KeyCount.defaults.keyresult.outtime.name,
             ["width"] = 75,
             ["color"] = KeyCount.util.convertRgb(KeyCount.defaults.colors.rating
                 [3].rgb)
         },
         {
-            ["name"] = "Abandoned",
+            ["name"] = KeyCount.defaults.keyresult.abandoned.name,
             ["width"] = 60,
             ["color"] = KeyCount.util.convertRgb(KeyCount.defaults.colors.rating
                 [1].rgb)
@@ -233,19 +253,19 @@ function GUI:ConstructGUI()
         { ["name"] = "Amount",       ["width"] = 55, },
         { ["name"] = "Success rate", ["width"] = 75, },
         {
-            ["name"] = "In time",
+            ["name"] = KeyCount.defaults.keyresult.intime.name,
             ["width"] = 55,
             ["color"] = KeyCount.util.convertRgb(KeyCount.defaults.colors.rating
                 [5].rgb)
         },
         {
-            ["name"] = "Out of time",
+            ["name"] = KeyCount.defaults.keyresult.outtime.name,
             ["width"] = 75,
             ["color"] = KeyCount.util.convertRgb(KeyCount.defaults.colors.rating
                 [3].rgb)
         },
         {
-            ["name"] = "Abandoned",
+            ["name"] = KeyCount.defaults.keyresult.abandoned.name,
             ["width"] = 60,
             ["color"] = KeyCount.util.convertRgb(KeyCount.defaults.colors.rating
                 [1].rgb)
@@ -267,7 +287,7 @@ function GUI:ConstructGUI()
     self.tables.rate:EnableSelection(true)
     self.tables.rate:Hide()
 
-    self.tables.grouped = ScrollingTable:CreateST(columnsGrouped, 8, 16, nil, window);
+    self.tables.grouped = ScrollingTable:CreateST(columnsGrouped, 16, 16, nil, window);
     self.tables.grouped.frame:SetPoint("TOP", window, "TOP", 0, -100);
     self.tables.grouped.frame:SetPoint("LEFT", window, "LEFT", 15, 0);
     self.tables.grouped:EnableSelection(true)
