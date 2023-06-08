@@ -116,6 +116,9 @@ local function formatDps(dps)
     return default
 end
 
+---Retrieves own player dps from dungeon data, formatted for the GUI
+---@param dungeon table
+---@return string dps
 local function getPlayerDpsString(dungeon)
     local player = dungeon.player
     local party = dungeon.party
@@ -142,7 +145,7 @@ local function prepareRowList(dungeon)
     local deaths = dungeon.totalDeaths or 0
     local time = getDungeonTime(dungeon, resultColor)
     local date = dungeon.date.date
-    local dps = KeyCount.util.safeExec("GetPlayerDps", getPlayerDpsString, dungeon)
+    local dps = getPlayerDpsString(dungeon)
     local affixes = KeyCount.util.concatTable(dungeon.keydata.affixes, ", ")
     local class, role = getClassAndRoleFromDungeon(dungeon)
     local p = getPlayerRoleAndColor(class, role)

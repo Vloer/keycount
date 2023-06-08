@@ -28,7 +28,7 @@ function KeyCount:ADDON_LOADED(event, addonName)
     if addonName == "KeyCount" then
         KeyCount:InitSelf()
         KeyCountDB.sessions = (KeyCountDB.sessions or 0) + 1
-        printf(string.format("Loaded %s for the %dth time.", addonName, KeyCountDB.sessions))
+        KeyCount.util.welcomeMessage(addonName)
     end
 end
 
@@ -283,16 +283,26 @@ end
 function KeyCount:InitDatabase()
     local dungeons = KeyCount:GetStoredDungeons()
     if dungeons then
-        printf("Ensuring database is up to date", nil, true)
+        printf("Checking database status", nil, true)
         local stored = {}
+        local amt = 0
         for i, d in ipairs(dungeons) do
-            local fixed = KeyCount.util.safeExec("FormatData", KeyCount.formatdata.format, d)
-            if fixed then
-                table.insert(stored, fixed)
+            local funcresult, fixed, updated = KeyCount.util.safeExec("FormatData", KeyCount.formatdata.format, d)
+            if funcresult then
+                if fixed then
+                    table.insert(stored, fixed)
+                end
+                if updated then
+                    amt = amt + 1
+                end
             end
         end
         KeyCountDB.dungeons = table.copy({}, stored)
-        printf("Database updated", nil, true)
+        local msg = "Database check completed"
+        if amt > 0 then
+            msg = msg .. ": " .. amt .. " dungeons updated"
+        end
+        printf(msg, nil, true)
     end
 end
 
@@ -301,64 +311,92 @@ function KeyCount:InitPlayerList()
     if not next(players) then
         local dungeons = KeyCount:GetStoredDungeons()
         if dungeons then
-            printf("Building stored player list from existing dungeons", nil, true)
-            KeyCount.util.safeExec("SaveAllPlayers", KeyCount.SaveAllPlayers, KeyCount, dungeons)
-            printf("Player list updated", nil, true)
+            KeyCount:SaveAllPlayers(dungeons)
         end
     end
 end
 
+---Save data of a single player to the 'players' table
+---@param players table Table to update
+---@param player string Playername
+---@param playerdata table Players data derived from party table (see defaults.partymember)
+---@param dungeon table Dungeon data (see defaults.dungeonDefault)
+---@return table players Updated players table
+---@return boolean Updated True if new player was added to the player list
+local function savePlayer(players, player, playerdata, dungeon)
+    local role = playerdata.role
+    local season = dungeon.season or KeyCount.defaults.dungeonDefault.season
+    local updated = false
+    if not players[player] then
+        --@debug@
+        Log(string.format("Adding %s to list of players", player))
+        --@end-debug@
+        updated = true
+        players[player] = {}
+    end
+    if not players[player][season] then
+        players[player][season] = {}
+    end
+    if not players[player][season][role] then
+        players[player][season][role] = table.copy({}, KeyCount.defaults.playerDefault)
+    end
+    local d = table.copy({}, players[player][season][role])
+    d.player = player
+    d.totalEntries = d.totalEntries + 1
+    --@debug@
+    Log(string.format("Changing totalEntries for player %s from %d to %d", player,
+        d.totalEntries - 1, d.totalEntries))
+    --@end-debug@
+    local dps = KeyCount.utilstats.getPlayerDps(playerdata)
+    local hps = KeyCount.utilstats.getPlayerHps(playerdata)
+    if dps > d.maxdps then d.maxdps = dps end
+    if dps > d.maxhps then d.maxhps = hps end
+    local keydata = dungeon.keydata
+    local key = {
+        name = keydata.name,
+        level = keydata.level,
+        affixes = keydata.affixes,
+        result = dungeon.keyresult.value,
+        resultstring = dungeon.keyresult.name,
+        season = dungeon.season,
+    }
+    if key.result == KeyCount.defaults.keyresult.intime.value then
+        d.intime = d.intime + 1
+    elseif key.result == KeyCount.defaults.keyresult.outtime.value then
+        d.outtime = d.outtime + 1
+    elseif key.result == KeyCount.defaults.keyresult.abandoned.value then
+        d.abandoned = d.abandoned + 1
+    end
+    table.insert(d.dungeons, key)
+    players[player][season][role] = table.copy({}, d)
+    return players, updated
+end
+
 function KeyCount:SaveAllPlayers(dungeons)
     if not dungeons then return end
+    printf("Checking player database", nil, true)
     local players = KeyCountDB.players or {}
+    local amt = 0
     for _, dungeon in ipairs(dungeons) do
-        local party  = dungeon.party or {}
-        local season = dungeon.season or KeyCount.defaults.dungeonDefault.season
+        local party = dungeon.party or {}
         for player, playerdata in pairs(party) do
-            local role = playerdata.role
-            if not players[player] then
-                --@debug@
-                Log(string.format("Adding %s to list of players", player))
-                --@end-debug@
-                players[player] = {}
+            local funcresult, res, updated = KeyCount.util.safeExec("SavePlayer", savePlayer, players, player, playerdata,
+                dungeon)
+            if funcresult then
+                if res then
+                    players = res
+                end
+                if updated then
+                    amt = amt + 1
+                end
             end
-            if not players[player][season] then
-                players[player][season] = {}
-            end
-            if not players[player][season][role] then
-                players[player][season][role] = table.copy({}, KeyCount.defaults.playerDefault)
-            end
-            local d = players[player][season][role]
-            d.player = player
-            d.timesgrouped = d.timesgrouped + 1
-            --@debug@
-            Log(string.format("Changing timesgrouped for player %s from %d to %d", player,
-                d.timesgrouped - 1, d.timesgrouped))
-            --@end-debug@
-            local dps = KeyCount.utilstats.getPlayerDps(playerdata)
-            local hps = KeyCount.utilstats.getPlayerHps(playerdata)
-            if dps > d.maxdps then d.maxdps = dps end
-            if dps > d.maxhps then d.maxhps = hps end
-            local keydata = dungeon.keydata
-            local key = {
-                name = keydata.name,
-                level = keydata.level,
-                affixes = keydata.affixes,
-                result = dungeon.keyresult.value,
-                resultstring = dungeon.keyresult.name,
-                season = dungeon.season,
-            }
-            if key.result == KeyCount.defaults.keyresult.intime.value then
-                d.intime = d.intime + 1
-            elseif key.result == KeyCount.defaults.keyresult.outtime.value then
-                d.outtime = d.outtime + 1
-            elseif key.result == KeyCount.defaults.keyresult.abandoned.value then
-                d.abandoned = d.abandoned + 1
-            end
-            table.insert(d.dungeons, key)
-            players[player][season][role] = table.copy({}, d)
         end
     end
+    local msg = "Player database check completed"
+    if amt > 0 then
+        msg = msg .. ": " .. amt .. " players added to the database"
+    end
+    printf(msg, nil, true)
     KeyCountDB.players = table.copy({}, players)
 end
 
@@ -393,8 +431,7 @@ end
 
 function KeyCount:GetStoredDungeons()
     if not KeyCountDB or next(KeyCountDB) == nil or next(KeyCountDB.dungeons) == nil then
-        print(string.format("%sKeyCount: %sNo dungeons stored!%s",
-            KeyCount.defaults.colors.chatAnnounce, KeyCount.defaults.colors.chatError, KeyCount.defaults.colors.reset))
+        printf("No dungeons stored!", KeyCount.defaults.colors.chatError, true)
         return nil
     end
     return KeyCountDB.dungeons

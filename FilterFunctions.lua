@@ -238,5 +238,6 @@ KeyCount.filterkeys = {
 
 KeyCount.filterorder = {
     "alldata", "player", "dungeon", "role", "season",
-    "completed", "inTime", "outTime", "failed", "level",
+    "completed", "intime", "outtime", "abandoned", "level",
     "time", "deathsgt", "deathslt", "date", "affix" }
+

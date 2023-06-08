@@ -1,5 +1,3 @@
-local util = KeyCount.util
-
 function Log(message)
     if DLAPI then
         DLAPI.DebugLog("KeyCount", message)
@@ -8,8 +6,8 @@ end
 
 ---Prints a colored chat message
 ---@param msg string Message to print
----@param fmt string|nil Color format. Defaults to cyan
----@param includeKeycount boolean|nil Set to true to add "Keycount: " to start of the message
+---@param fmt string|nil Color format (default cyan)
+---@param includeKeycount boolean|nil Set to true to add "Keycount: " to start of the message (default false)
 function printf(msg, fmt, includeKeycount)
     fmt = fmt or KeyCount.defaults.colors.chatAnnounce
     includeKeycount = includeKeycount or false
@@ -18,6 +16,46 @@ function printf(msg, fmt, includeKeycount)
     else
         print(string.format("%s%s|r", fmt, msg))
     end
+end
+
+local function pack(...)
+    return { n = select("#", ...), ... }
+end
+
+KeyCount.util.welcomeMessage = function(name)
+    local s = KeyCountDB.sessions
+    local num
+    if s == 3 then
+        num = "third"
+    elseif s == 2 then
+        num = "second"
+    elseif s == 1 then
+        num = "first"
+    else
+        num = s .. "th"
+    end
+    printf(string.format("Loaded %s for the %s time.", name, num))
+end
+
+-- Call this function to ensure that the code after it is still executed
+---@param name string Name to display in print statement
+---@param func function Function to executed
+---@param ... any Function arguments seperated by comma
+---@return any|boolean Result First result is the result of execution (bool), following results are the outcome(s) of the called function
+KeyCount.util.safeExec = function(name, func, ...)
+    local result = pack(pcall(func, ...))
+    -- local success, result = pcall(func, ...)
+    local success = result[1]
+    if success then
+        return unpack(result)
+    end
+    print(string.format(
+        "%sKeyCount: %sWarning! an error occurred in function '%s'! Data may not be correct, check your SavedVariables file.%s",
+        KeyCount.defaults.colors.chatAnnounce, KeyCount.defaults.colors.chatError, name, KeyCount.defaults.colors.reset))
+    print(string.format("%sKeyCount: %sError: %s%s. Please report the error on the addon's curse page.",
+        KeyCount.defaults.colors.chatAnnounce,
+        KeyCount.defaults.colors.chatError, result, KeyCount.defaults.colors.reset))
+    return success
 end
 
 -- Checks two tables for equality
@@ -133,23 +171,6 @@ KeyCount.util.getKeyForValue = function(t, value)
     return nil
 end
 
--- Call this function to ensure that the code after it is still executed
----@param name string Name to display in print statement
----@param func function Function to executed
----@param ... any Function arguments seperated by comma
-KeyCount.util.safeExec = function(name, func, ...)
-    local success, result = pcall(func, ...)
-    if success then
-        return result
-    end
-    print(string.format(
-        "%sKeyCount: %sWarning! an error occurred in function '%s'! Data may not be correct, check your SavedVariables file.%s",
-        KeyCount.defaults.colors.chatAnnounce, KeyCount.defaults.colors.chatError, name, KeyCount.defaults.colors.reset))
-    print(string.format("%sKeyCount: %sError: %s%s. Please report the error on the addon's curse page.",
-        KeyCount.defaults.colors.chatAnnounce,
-        KeyCount.defaults.colors.chatError, result, KeyCount.defaults.colors.reset))
-    return success
-end
 
 -- Add symbol to the end of a string
 ---@param text string Base string

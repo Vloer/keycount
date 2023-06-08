@@ -1,11 +1,12 @@
 -- Format the dungeon storage object to the most recent version to avoid any errors
 ---@param dungeonIn table Dungeon data
 ---@return table dungeon Updated dungeon data
+---@return boolean updated True if dungeon was updated
 function KeyCount.formatdata.format(dungeonIn)
     local dungeon = table.copy({}, dungeonIn)
     local old = dungeon["version"] or 0
     local new = KeyCount.defaults.dungeonDefault.version
-    if old == new then return dungeon end
+    if old == new then return dungeon, false end
     local level = dungeon.keyDetails.level or dungeon.keydata.level or 0
     local debuglog = string.format("Formatted data for [%s %s] from version %s", dungeon.name, level, old)
 
@@ -116,7 +117,7 @@ function KeyCount.formatdata.format(dungeonIn)
     --@debug@
     Log(debuglog)
     --@end-debug@
-    return dungeon
+    return dungeon, true
 end
 
 --[[
@@ -135,5 +136,5 @@ Dungeon storage version changelog:
 2 -
     - Changed keyDetails to keydata
     - Changed timeLimit to timelimit
-    - Removed completed/completedintime and added keyresult
+    - Removed completedintime and added keyresult
 ]]
