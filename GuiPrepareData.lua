@@ -1,5 +1,3 @@
-local g = KeyCount.guipreparedata
-
 local function rgb(tbl)
     return KeyCount.util.convertRgb(tbl)
 end

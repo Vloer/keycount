@@ -1,4 +1,4 @@
-- Enabled Uldaman filter through shortcut (ULD)
+- Changed interface version
 
 v0.5 changelog:
 - Added "Player success rate" tab. Shows amount of times you have grouped with each unique player and the success rate with that player.
@@ -13,3 +13,4 @@ v0.5 changelog:
 - Improved backend for player success rate
 - Addon now fixes all database entries once on login
 - Added which filter is used to party export message
+- Enabled Uldaman filter through shortcut (ULD)

@@ -1,4 +1,3 @@
-local f = KeyCount.filterfunctions
 KeyCount.filterfunctions.print = {}
 
 local function noResult()
