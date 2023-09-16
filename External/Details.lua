@@ -1,18 +1,21 @@
 local d = {}
 
-function d:getDetails()
+function d:setDetailsAttribute()
+    if self.details then return end
     local details = _G.Details
     if not details then
+        Log("Details addon could not be found!")
         return false
-    else
-        self.details = details
     end
+    self.details = details
 end
 
-function d:getCombat(segment)
-    if not self.details then self:getDetails() end
-    segment = segment or -1
-    self.combat = self.details:GetCombat(segment)
+function d:setCombatAttribute(segment)
+    self:setDetailsAttribute()
+    if self.details then
+        segment = segment or -1
+        self.combat = self.details:GetCombat(segment)
+    end
 end
 
 function d:getPerSecond(attribute, player)
@@ -44,7 +47,8 @@ function d:getHealing(player)
 end
 
 function d:getAll()
-    if not self.combat then self:getCombat() end
+    self:setCombatAttribute()
+    if not self.combat then return nil end
     local party = {}
     local containerHeal = self.combat:GetContainer(DETAILS_ATTRIBUTE_HEAL)
     local containerDamage = self.combat:GetContainer(DETAILS_ATTRIBUTE_DAMAGE)

@@ -1,4 +1,5 @@
-- Changed interface version
+- Fixed bug where errors would not be caught successfully
+- Fixed bug where dungeon data would not be saved if details addon is disabled
 
 v0.5 changelog:
 - Added "Player success rate" tab. Shows amount of times you have grouped with each unique player and the success rate with that player.

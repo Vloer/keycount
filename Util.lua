@@ -18,10 +18,6 @@ function printf(msg, fmt, includeKeycount)
     end
 end
 
-local function pack(...)
-    return { n = select("#", ...), ... }
-end
-
 KeyCount.util.welcomeMessage = function(name)
     local s = KeyCountDB.sessions
     local num
@@ -43,6 +39,8 @@ end
 ---@param ... any Function arguments seperated by comma
 ---@return any|boolean Result First result is the result of execution (bool), following results are the outcome(s) of the called function
 KeyCount.util.safeExec = function(name, func, ...)
+    local pack = table.pack or function(...) return { n = select("#", ...), ... } end
+    local unpack = table.unpack or unpack
     local result = pack(pcall(func, ...))
     -- local success, result = pcall(func, ...)
     local success = result[1]
@@ -54,7 +52,7 @@ KeyCount.util.safeExec = function(name, func, ...)
         KeyCount.defaults.colors.chatAnnounce, KeyCount.defaults.colors.chatError, name, KeyCount.defaults.colors.reset))
     print(string.format("%sKeyCount: %sError: %s%s. Please report the error on the addon's curse page.",
         KeyCount.defaults.colors.chatAnnounce,
-        KeyCount.defaults.colors.chatError, result, KeyCount.defaults.colors.reset))
+        KeyCount.defaults.colors.chatError, result[2], KeyCount.defaults.colors.reset))
     return success
 end
 
