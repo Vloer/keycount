@@ -1,5 +1,4 @@
-- Fixed bug where errors would not be caught successfully
-- Fixed bug where dungeon data would not be saved if details addon is disabled
+- Added safety check when showing data in the GUI. This should make sure that valid data is always shown, even if there are corrupted entries in the data.
 
 v0.5 changelog:
 - Added "Player success rate" tab. Shows amount of times you have grouped with each unique player and the success rate with that player.
@@ -15,3 +14,5 @@ v0.5 changelog:
 - Addon now fixes all database entries once on login
 - Added which filter is used to party export message
 - Enabled Uldaman filter through shortcut (ULD)
+- Fixed bug where errors would not be caught successfully
+- Fixed bug where dungeon data would not be saved if details addon is disabled

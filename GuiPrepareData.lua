@@ -223,11 +223,34 @@ local function prepareRowGrouped(player)
     return { cols = row }
 end
 
+---Helper function that inserts data into a table if data was retrieved without any errors.
+---@param success boolean
+---@param dataToInsert table|nil Data to insert can be nil if success is false
+---@param targetTable table
+---@param i number Iteration number (used for message on failed attempt)
+---@return table T Updated table
+local function insertDataIfNoErrors(success, dataToInsert, targetTable, i)
+    i = i or 0
+    if success and dataToInsert then
+        table.insert(targetTable, dataToInsert)
+    else
+        if i > 0 then
+            printf(
+                string.format("Error occurred when trying to show data for dungeon %i. " ..
+                    "You can fix this by manually removing data for that dungeon from your SavedVariables file.", i),
+                KeyCount.defaults.colors.chatWarning, true)
+        end
+    end
+    return targetTable
+end
+
 local function prepareList(dungeons)
     local data = {}
+    local i = 0
     for _, dungeon in ipairs(dungeons) do
-        local row = prepareRowList(dungeon)
-        table.insert(data, row)
+        i = i + 1
+        local noErrors, row = KeyCount.util.safeExec("PrepareRowList", prepareRowList, dungeon)
+        data = insertDataIfNoErrors(noErrors, row, data, i)
     end
     return data
 end
@@ -237,18 +260,22 @@ KeyCount.guipreparedata.filter = prepareList
 
 function KeyCount.guipreparedata.rate(dungeons)
     local data = {}
+    local i = 0
     for _, dungeon in ipairs(dungeons) do
-        local row = prepareRowRate(dungeon)
-        table.insert(data, row)
+        i = i + 1
+        local noErrors, row = KeyCount.util.safeExec("PrepareRowRate", prepareRowRate, dungeon)
+        data = insertDataIfNoErrors(noErrors, row, data, i)
     end
     return data
 end
 
 function KeyCount.guipreparedata.grouped(players)
     local data = {}
+    local i = 0
     for player, playerdata in ipairs(players) do
-        local row = prepareRowGrouped(playerdata)
-        table.insert(data, row)
+        i = i + 1
+        local noErrors, row = KeyCount.util.safeExec("PrepareRowGrouped", prepareRowGrouped, playerdata)
+        data = insertDataIfNoErrors(noErrors, row, data, i)
     end
     return data
 end
