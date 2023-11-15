@@ -10,12 +10,14 @@ local colors = {
     lightgreen = { chat = "|cffa3ff00", rgb = { r = 163, g = 255, b = 0, a = 1 } },
     darkgreen = { chat = "|cff2cba00", rgb = { r = 44, g = 186, b = 0, a = 1 } },
     gold = { chat = "|cffffd700", rgb = { r = 255, g = 215, b = 0, a = 1 } },
+    white = { chat = "|cffffffff", rgb = { r = 1, g = 1, b = 1, a = 1 } },
     reset = "|r"
 }
 local seasons = {
     Dragonflight = {
         "Dragonflight-1",
-        "Dragonflight-2"
+        "Dragonflight-2",
+        "Dragonflight-3"
     }
 }
 local keyresult = {
@@ -43,11 +45,19 @@ local defaults = {
         BH = "Brackenhide Hollow",
         HOI = "Halls of Infusion",
         NEL = "Neltharus",
-        ULD = "Uldaman",
+        ULD = "Uldaman: Legacy of Tyr",
         FH = "Freehold",
         NL = "Neltharion's Lair",
         UR = "The Underrot",
-        VP = "Vortex Pinnacle"
+        VP = "The Vortex Pinnacle",
+        AD = "Atal'Dazar",
+        BRH = "Black Rook Hold",
+        DHT = "Darkheart Thicket",
+        EB = "Everbloom",
+        TOT = "Throne of the Tides",
+        WM = "Waycrest Manor",
+        GF = "Dawn of the Infinite: Galakrond's Fall",
+        MR = "Dawn of the Infinite: Murozond's Rise"
     },
     partymember = {
         role = "",
@@ -64,8 +74,9 @@ local defaults = {
         }
     },
     dungeonDefault = {
-        version = 2,
-        season = seasons.Dragonflight[2],
+        uuid = "",
+        version = 3,
+        season = seasons.Dragonflight[3],
         player = "",
         name = "",
         party = {},
@@ -82,7 +93,7 @@ local defaults = {
         stars = ""
     },
     playerDefault = {
-        version = 1,
+        version = 2,
         player = "",
         totalEntries = 0,
         intime = 0,
@@ -92,7 +103,9 @@ local defaults = {
         maxhps = 0,
         role = "",
         class = "",
-        dungeons = {}
+        dungeons = {},
+        median = 0,
+        best = 0
     },
     keyresult = keyresult,
     colors = {
@@ -108,12 +121,13 @@ local defaults = {
             colors.darkgreen,
         },
         gold = colors.gold,
+        white = colors.white,
         reset = colors.reset,
     },
     dateFormat = "%Y-%m-%d",
     datetimeFormat = "%Y-%m-%d %H:%M:%S",
     gui = {
-        filterType = "list",
+        view = "list",
         filter = "alldata"
     },
     filter = { key = "alldata", value = "" },

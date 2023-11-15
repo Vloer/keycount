@@ -2,6 +2,9 @@ local function rgb(tbl)
     return KeyCount.util.convertRgb(tbl)
 end
 
+---Get role image
+---@param role string Role name
+---@return string R Stringified image or empty string
 local function getRoleIcon(role)
     if role == "DAMAGER" then
         return "|TInterface\\AddOns\\KeyCount\\Icons\\roles:14:14:0:0:64:64:0:18:0:18|t"
@@ -9,33 +12,38 @@ local function getRoleIcon(role)
         return "|TInterface\\AddOns\\KeyCount\\Icons\\roles:14:14:0:0:64:64:19:37:0:18|t"
     elseif role == "TANK" then
         return "|TInterface\\AddOns\\KeyCount\\Icons\\roles:14:14:0:0:64:64:38:56:0:18|t"
-    else
-        return nil
     end
+    return ""
 end
 
+---Retrieve class and role from the dungeon party data for the player. Returns empty strings if player can't be found in party (bug)
+---@param dungeon table Dungeon data
+---@return string class Class name
+---@return string role Role name
 local function getClassAndRoleFromDungeon(dungeon)
     local party = dungeon.party
-    local player = party[dungeon.player]
-    local class = player.class
-    local role = player.role
+    local player = party[dungeon.player] or {}
+    local class = player.class or ""
+    local role = player.role or ""
     return class, role
 end
 
+---Retrieve class color and role icon
+---@param class string Class name
+---@param role string Role name
+---@return table T Table containing [1] color rgb table, [2] color hex value string, [3] role icon string
 local function getPlayerRoleAndColor(class, role)
-    local classMale = KeyCount.util.getKeyForValue(LOCALIZED_CLASS_NAMES_MALE, class)
-    local classFemale = KeyCount.util.getKeyForValue(LOCALIZED_CLASS_NAMES_FEMALE, class)
-    local tbl = RAID_CLASS_COLORS[classMale or classFemale]
-    local color = { r = tbl.r, g = tbl.g, b = tbl.b, a = 1 }
-    local roleIcon = getRoleIcon(role)
-    if role == "TANK" then
-        role = "Tank"
-    elseif role == "DAMAGER" then
-        role = "DPS"
-    else
-        role = "Heal"
+    local color = { r = 1, g = 1, b = 1, a = 1 }
+    local colorHex = "ffffffff"
+    if #class ~= 0 then
+        local classMale = KeyCount.util.getKeyForValue(LOCALIZED_CLASS_NAMES_MALE, class)
+        local classFemale = KeyCount.util.getKeyForValue(LOCALIZED_CLASS_NAMES_FEMALE, class)
+        local tbl = RAID_CLASS_COLORS[classMale or classFemale]
+        color = { r = tbl.r, g = tbl.g, b = tbl.b, a = 1 }
+        colorHex = tbl.colorStr
     end
-    return { color = color, hex = tbl.colorStr, role = role, roleIcon = roleIcon }
+    local roleIcon = getRoleIcon(role)
+    return { color = color, hex = colorHex, roleIcon = roleIcon }
 end
 
 local function getLevelColor(level)
@@ -48,22 +56,43 @@ local function getLevelColor(level)
     return { color = color, hex = hex }
 end
 
+---Finds correct color for dungeon result
+---@param dungeon table|number Dungeon data or result integer
+---@return table T Table containing color specifications
 local function getResultColor(dungeon)
-    if dungeon.keyresult.value == KeyCount.defaults.keyresult.intime.value then
+    local result = 0
+    if type(dungeon) == "table" then
+        result = dungeon.keyresult.value
+    elseif type(dungeon) == "number" then
+        result = dungeon
+    end
+    if result == KeyCount.defaults.keyresult.intime.value then
         return KeyCount.defaults.colors.rating[5]
-    elseif dungeon.keyresult.value == KeyCount.defaults.keyresult.outtime.value then
+    elseif result == KeyCount.defaults.keyresult.outtime.value then
         return KeyCount.defaults.colors.rating[3]
-    elseif dungeon.keyresult.value == KeyCount.defaults.keyresult.abandoned.value then
+    elseif result == KeyCount.defaults.keyresult.abandoned.value then
         return KeyCount.defaults.colors.rating[1]
     end
+    return KeyCount.defaults.colors.white
 end
 
-local function getDeathsColor(deaths)
+---Finds appropiate color for amount of deaths
+---@param deaths number Amount of deaths
+---@param soloPlayer boolean|nil Flag to enable steeper coloring for solo players
+---@return table T Table containing color specifications
+local function getDeathsColor(deaths, soloPlayer)
+    soloPlayer = soloPlayer or false
     local idx
+    local multiplier
+    if soloPlayer then
+        multiplier = 1.5
+    else
+        multiplier = 4
+    end
     if deaths == 0 then
         idx = 5
     else
-        idx = math.floor(6 - deaths / 4)
+        idx = math.floor(6 - deaths / multiplier)
         if idx <= 0 then idx = 1 end
     end
     return rgb(KeyCount.defaults.colors.rating[idx].rgb)
@@ -204,7 +233,10 @@ local function prepareRowGrouped(player)
     local abandoned = player.abandoned
     local best = player.best
     local median = player.median
+    local playerScore = KeyCount.utilstats.calculatePlayerScore(intime, outtime, abandoned, median, best)
+    local playerScoreString = string.format("%.0f", playerScore)
     local dps = formatDps(player.maxdps)
+    local hps = formatDps(player.maxhps)
     local p = getPlayerRoleAndColor(player.class, player.role)
     local playerString = p.roleIcon .. name
     --@debug@
@@ -212,6 +244,7 @@ local function prepareRowGrouped(player)
     --@end-debug@
 
     table.insert(row, { value = playerString, color = p.color })
+    table.insert(row, { value = playerScoreString, color = getSuccessRateColor(playerScore) })
     table.insert(row, { value = amount })
     table.insert(row, { value = rateString, color = getSuccessRateColor(rate) })
     table.insert(row, { value = intime })
@@ -220,6 +253,85 @@ local function prepareRowGrouped(player)
     table.insert(row, { value = best, color = getLevelColor(best).color })
     table.insert(row, { value = median, color = getLevelColor(median).color })
     table.insert(row, { value = dps })
+    table.insert(row, { value = hps })
+    return { cols = row }
+end
+
+---Prepare a single row of data containing stats for a single player
+---@param player table
+---@return table Row Formatted row object
+local function prepareRowSearchPlayerPlayer(player)
+    --@debug@
+    Log(string.format("Preparing row for %s: %s", player.name, player.role))
+    --@end-debug@
+    local row = {}
+    local name = player.name
+    local amount = player.amount
+    local rate = player.rate
+    local rateString = string.format("%.2f%%", rate)
+    local intime = player.intime
+    local outtime = player.outtime
+    local abandoned = player.abandoned
+    local best = player.best
+    local median = player.median
+    local playerScore = KeyCount.utilstats.calculatePlayerScore(intime, outtime, abandoned, median, best)
+    local playerScoreString = string.format("%.0f", playerScore)
+    local maxdps = formatDps(player.maxdps)
+    local maxhps = formatDps(player.maxhps)
+    local p = getPlayerRoleAndColor(player.class, player.role)
+    local playerString = p.roleIcon .. name
+    --@debug@
+    KeyCount.util.printTableOnSameLine(player, "prepareRowSearchPlayerPlayer")
+    --@end-debug@
+    table.insert(row, { value = playerString, color = p.color })
+    table.insert(row, { value = playerScoreString, color = getSuccessRateColor(playerScore) })
+    table.insert(row, { value = amount })
+    table.insert(row, { value = rateString, color = getSuccessRateColor(rate) })
+    table.insert(row, { value = intime })
+    table.insert(row, { value = outtime })
+    table.insert(row, { value = abandoned })
+    table.insert(row, { value = best, color = getLevelColor(best).color })
+    table.insert(row, { value = median, color = getLevelColor(median).color })
+    table.insert(row, { value = maxdps })
+    table.insert(row, { value = maxhps })
+    return { cols = row }
+end
+
+---Prepare a single row of data containing all dungeon stats for a single player
+---@param dungeon table
+---@return table Row Formatted row object
+local function prepareRowSearchPlayerDungeon(dungeon)
+    --@debug@
+    Log(string.format("Preparing row for %s %s", dungeon.name, tostring(dungeon.level)))
+    --@end-debug@
+    local row = {}
+    local season = dungeon.season
+    local name = dungeon.name
+    local nameWithRole = getRoleIcon(dungeon.role) .. name
+    local level = dungeon.level
+    local levelColor = getLevelColor(level).color
+    local result = dungeon.resultstring
+    local resultColor = rgb(getResultColor(dungeon.result).rgb)
+    local time = dungeon.time
+    local deaths = dungeon.deaths
+    local deathsColor = getDeathsColor(deaths, true)
+    local dps = formatDps(dungeon.dps)
+    local hps = formatDps(dungeon.hps)
+    local date = dungeon.date
+    local affixes = dungeon.affixes
+    --@debug@
+    KeyCount.util.printTableOnSameLine(dungeon, "prepareRowSearchPlayerDungeon")
+    --@end-debug@
+    table.insert(row, { value = season })
+    table.insert(row, { value = nameWithRole })
+    table.insert(row, { value = level, color = levelColor })
+    table.insert(row, { value = result, color = resultColor })
+    table.insert(row, { value = time })
+    table.insert(row, { value = deaths, color = deathsColor })
+    table.insert(row, { value = dps })
+    table.insert(row, { value = hps })
+    table.insert(row, { value = date })
+    table.insert(row, { value = affixes })
     return { cols = row }
 end
 
@@ -227,7 +339,7 @@ end
 ---@param success boolean
 ---@param dataToInsert table|nil Data to insert can be nil if success is false
 ---@param targetTable table
----@param i number Iteration number (used for message on failed attempt)
+---@param i number|nil Iteration number (used for message on failed attempt)
 ---@return table T Updated table
 local function insertDataIfNoErrors(success, dataToInsert, targetTable, i)
     i = i or 0
@@ -246,19 +358,16 @@ end
 
 local function prepareList(dungeons)
     local data = {}
-    local i = 0
-    for _, dungeon in ipairs(dungeons) do
-        i = i + 1
+    local numDungeons = #dungeons
+    for i = numDungeons, 1, -1 do -- Sort by date descending
+        local dungeon = dungeons[i]
         local noErrors, row = KeyCount.util.safeExec("PrepareRowList", prepareRowList, dungeon)
-        data = insertDataIfNoErrors(noErrors, row, data, i)
+        data = insertDataIfNoErrors(noErrors, row, data, numDungeons - i + 1)
     end
     return data
 end
 
-KeyCount.guipreparedata.list = prepareList
-KeyCount.guipreparedata.filter = prepareList
-
-function KeyCount.guipreparedata.rate(dungeons)
+local function prepareRate(dungeons)
     local data = {}
     local i = 0
     for _, dungeon in ipairs(dungeons) do
@@ -269,7 +378,7 @@ function KeyCount.guipreparedata.rate(dungeons)
     return data
 end
 
-function KeyCount.guipreparedata.grouped(players)
+local function prepareGrouped(players)
     local data = {}
     local i = 0
     for player, playerdata in ipairs(players) do
@@ -279,3 +388,25 @@ function KeyCount.guipreparedata.grouped(players)
     end
     return data
 end
+
+local function prepareSearchPlayer(playerdata, dungeondata)
+    local dataPlayers = {}
+    local dataDungeons = {}
+    for _, roleData in ipairs(playerdata) do
+        local noErrors, row = KeyCount.util.safeExec("PrepareRowSearchPlayerPlayer",
+            prepareRowSearchPlayerPlayer, roleData)
+        dataPlayers = insertDataIfNoErrors(noErrors, row, dataPlayers)
+    end
+    for _, dungeon in ipairs(dungeondata) do
+        local noErrors, row = KeyCount.util.safeExec("PrepareRowSearchPlayerDungeon",
+            prepareRowSearchPlayerDungeon, dungeon)
+        dataDungeons = insertDataIfNoErrors(noErrors, row, dataDungeons)
+    end
+    return dataPlayers, dataDungeons
+end
+
+KeyCount.guipreparedata.list = prepareList
+KeyCount.guipreparedata.filter = prepareList
+KeyCount.guipreparedata.rate = prepareRate
+KeyCount.guipreparedata.grouped = prepareGrouped
+KeyCount.guipreparedata.searchplayer = prepareSearchPlayer

@@ -201,6 +201,7 @@ end
 
 -- Calculate the median of a list of values
 ---@param list table List that should not contain nil or nan values
+---@return integer median
 KeyCount.util.calculateMedian = function(list)
     table.sort(list)
 
@@ -226,4 +227,124 @@ KeyCount.util.getListOfValues = function(tbl, key)
     end
     if not next(res) then return nil end
     return res
+end
+
+---Checks if list contains an item
+---@param item any Item to check for
+---@param list table List to check in
+---@return boolean R True if list contains item
+KeyCount.util.listContainsItem = function(item, list)
+    for _, i in ipairs(list) do
+        if item == i then
+            return true
+        end
+    end
+    return false
+end
+
+---Generates a random UUID
+---@return string UUID
+KeyCount.util.uuid = function()
+    local random = math.random
+    local template = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
+    return (string.gsub(template, '[xy]', function(c)
+        local v = (c == 'x') and random(0, 0xf) or random(8, 0xb)
+        return string.format('%x', v)
+    end))
+end
+
+---Calculate dungeon success rate
+---@param intime integer Timed dungeons
+---@param outtime integer Out of time dungeons
+---@param abandoned integer Abandoned dungeons
+---@return number rate Success rate 0-100
+KeyCount.util.calculateSuccessRate = function(intime, outtime, abandoned)
+    local total = intime + outtime + abandoned
+    if (abandoned + outtime) == 0 then
+        return 100
+    elseif intime == 0 then
+        return 0
+    else
+        return intime / total * 100
+    end
+end
+
+---Check if a table contains a set of keys
+---@param tbl table Table to check for keys
+---@param dataTable table Data table with required keys
+KeyCount.util.checkKeysInTable = function(tbl, dataTable, additionalMsg)
+    local _msg = additionalMsg or ''
+    local keys = {}
+    for k, v in pairs(dataTable) do
+        table.insert(keys, k)
+    end
+    for _, key in ipairs(keys) do
+        local msg = "'" .. key .. "' not found in the table"
+        if #_msg > 0 then
+            msg = "[" .. _msg .. "] " .. msg
+        end
+        if tbl[key] == nil then
+            error(msg, 2)
+        end
+    end
+end
+
+---Adds own realm name to a character name if no realm is specified
+---@param name string Name to edit
+---@return string updatedName Name with realm attached
+KeyCount.util.addRealmToName = function(name)
+    local containsRealm = string.find(name, "-")
+    if not containsRealm then
+        local realm = GetRealmName()
+        realm = string.gsub(realm, "%s+", "")
+        name = name .. "-" .. realm
+    end
+    return name
+end
+
+---Formats supplied player role
+---@param role string|nil Role to format
+---@return string|nil formattedRole Options: TANK | HEALER | DAMAGER | nil
+KeyCount.util.formatRole = function(role)
+    if not role then return nil end
+    local _role = nil
+    if type(role) == "string" then
+        _role = string.lower(role)
+    end
+    if _role == "dps" or _role == "damager" or _role == "damage" then
+        _role = "DAMAGER"
+    elseif _role == "tank" then
+        _role = "TANK"
+    elseif _role == "heal" or _role == "healer" or _role == "healing" then
+        _role = "HEALER"
+    else
+        printf(string.format("Unknown role supplied: %s. Options are 'tank', 'heal' or 'dps'!", role),
+            KeyCount.defaults.colors.chatWarning)
+        return nil
+    end
+    return _role
+end
+
+---Get max of 2 numbers. Returns 0 if invalid arguments are supplied
+---@param v1 number
+---@param v2 number
+---@return number highestNum
+KeyCount.util.getMax = function(v1, v2)
+    if type(v1) == "number" and type(v2) == "number" then
+        if v1 > v2 then return v1 end
+        return v2
+    end
+    return 0
+end
+
+---Split a string and return the first part
+---@param s string String to split
+---@param sep string|nil Separator. Defaults to '-'
+---@return string All characters before the separator
+KeyCount.util.splitString = function(s, sep)
+    s = tostring(s) or ""
+    sep = sep or "-"
+    for part in s:gmatch("([^%-]+)") do
+        return part
+    end
 end

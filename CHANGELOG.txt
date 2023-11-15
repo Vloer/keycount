@@ -1,7 +1,9 @@
-- Added safety check when showing data in the GUI. This should make sure that valid data is always shown, even if there are corrupted entries in the data.
+- Added player search function
+- Added weighted player score
+- Added realm name to all players (also on own realm)
 
 v0.5 changelog:
-- Added "Player success rate" tab. Shows amount of times you have grouped with each unique player and the success rate with that player.
+- Added "Player success rate" tab. Shows amount of times you have grouped with each unique player and the success rate with that player
 - Added median key and max dps columns to success rate tab
 - Added role filter. Accepts heal, tank, dps, healer, damager, healing, damage, all, <empty>
 - Added season to csv export 
@@ -16,3 +18,4 @@ v0.5 changelog:
 - Enabled Uldaman filter through shortcut (ULD)
 - Fixed bug where errors would not be caught successfully
 - Fixed bug where dungeon data would not be saved if details addon is disabled
+- Added safety check when showing data in the GUI. This should make sure that valid data is always shown, even if there are corrupted entries in the data

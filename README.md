@@ -39,9 +39,7 @@ This addon is still in beta development, but you can already download it from cu
       - Note, affixes, party, details stuff
     - Make GUI side scrollable if it gets too large?
     - Create custom sorting functions for each column (currently sorts by string value)
-
-## Player success rate
-    - Improve success rate calculation (2 out of 2 is less impressive than 98 out of 100)
+    - Add preference settings
 
 ## Notes section
     - At the end of a failed run ask player for a note on that run (popup?)
@@ -50,6 +48,10 @@ This addon is still in beta development, but you can already download it from cu
 
 ## Data filter
     - Add filter for current week
+    - Enable multiple filters
+
+## Player score
+    - Improve algorithm to include best/average key level
 
 ## Data storage
 

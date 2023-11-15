@@ -9,6 +9,7 @@ KeyCount.utilstats = {}
 KeyCount.details = {}
 KeyCount.formatdata = {}
 
+
 -- Event behaviour
 function KeyCount:OnEvent(event, ...)
     self[event](self, event, ...)
@@ -67,6 +68,7 @@ function KeyCount:COMBAT_LOG_EVENT_UNFILTERED()
         CombatLogGetCurrentEventInfo()
     if event == "UNIT_DIED" and UnitInParty(destName) then
         if AuraUtil.FindAuraByName("Feign Death", destName) then return end
+        destName = KeyCount.util.addRealmToName(destName)
         self.current.deaths[destName] = (self.current.deaths[destName] or 0) + 1
         self.current.party[destName].deaths = (self.current.party[destName].deaths or 0) + 1
         printf(string.format("%s died!", destName), self.defaults.colors.chatError, true)
@@ -155,13 +157,18 @@ function KeyCount:SetKeyStart()
     local name, _, timelimit = C_ChallengeMode.GetMapUIInfo(challengeMapID)
     Log(string.format("Started %s on level %d.", name, activeKeystoneLevel))
     printf(string.format("started recording for %s %d.", name, activeKeystoneLevel), nil, true)
+    self.current.keydata.name = name
     self.current.keydata.level = activeKeystoneLevel
     self.current.startedTimestamp = time()
     self.current.party = self:GetPartyMemberInfo()
     self.current.keydata.affixes = {}
     self.current.keydata.timelimit = timelimit
     self.current.name = name
-    if self.current.player == "" then self.current.player = UnitName("player") end
+    self.current.uuid = self.util.uuid()
+    if self.current.player == "" then
+        local playername = KeyCount.util.addRealmToName(UnitName("player"))
+        self.current.player = playername
+    end
     for _, affixID in ipairs(activeAffixIDs) do
         local affixName = C_ChallengeMode.GetAffixInfo(affixID)
         table.insert(self.current.keydata.affixes, affixName)
@@ -287,7 +294,7 @@ function KeyCount:InitDatabase()
         local stored = {}
         local amt = 0
         for i, d in ipairs(dungeons) do
-            local funcresult, fixed, updated = KeyCount.util.safeExec("FormatData", KeyCount.formatdata.format, d)
+            local funcresult, fixed, updated = KeyCount.util.safeExec("FormatData", KeyCount.formatdata.formatdungeon, d)
             if funcresult then
                 if fixed then
                     table.insert(stored, fixed)
@@ -297,21 +304,35 @@ function KeyCount:InitDatabase()
                 end
             end
         end
-        KeyCountDB.dungeons = table.copy({}, stored)
+
         local msg = "Database check completed"
         if amt > 0 then
             msg = msg .. ": " .. amt .. " dungeons updated"
         end
         printf(msg, nil, true)
+        if next(stored) ~= nil then
+            KeyCountDB.dungeons = table.copy({}, stored)
+        else
+            printf('Formatted dungeon list is empty! Something likely went wrong, not saving to database!',
+                KeyCount.defaults.colors.chatWarning, true)
+        end
     end
 end
 
 function KeyCount:InitPlayerList()
     local players = KeyCountDB.players or {}
+    local dungeons = KeyCount:GetStoredDungeons()
+    printf("Checking player database", nil, true)
     if not next(players) then
-        local dungeons = KeyCount:GetStoredDungeons()
         if dungeons then
             KeyCount:SaveAllPlayers(dungeons)
+        end
+    else
+        if dungeons then
+            KeyCount.formatdata.formatplayers(dungeons, players)
+        else
+            printf("ERROR could not initiate player database because no dungeons were found!",
+                KeyCount.defaults.colors.chatError, true)
         end
     end
 end
@@ -325,6 +346,7 @@ end
 ---@return boolean Updated True if new player was added to the player list
 local function savePlayer(players, player, playerdata, dungeon)
     local role = playerdata.role
+    local class = playerdata.class
     local season = dungeon.season or KeyCount.defaults.dungeonDefault.season
     local updated = false
     if not players[player] then
@@ -342,6 +364,8 @@ local function savePlayer(players, player, playerdata, dungeon)
     end
     local d = table.copy({}, players[player][season][role])
     d.player = player
+    d.role = role
+    d.class = class
     d.totalEntries = d.totalEntries + 1
     --@debug@
     Log(string.format("Changing totalEntries for player %s from %d to %d", player,
@@ -349,8 +373,10 @@ local function savePlayer(players, player, playerdata, dungeon)
     --@end-debug@
     local dps = KeyCount.utilstats.getPlayerDps(playerdata)
     local hps = KeyCount.utilstats.getPlayerHps(playerdata)
-    if dps > d.maxdps then d.maxdps = dps end
-    if dps > d.maxhps then d.maxhps = hps end
+    d.maxdps = KeyCount.util.getMax(dps, d.maxdps)
+    d.maxhps = KeyCount.util.getMax(hps, d.maxhps)
+
+    -- Dungeons
     local keydata = dungeon.keydata
     local key = {
         name = keydata.name,
@@ -359,6 +385,12 @@ local function savePlayer(players, player, playerdata, dungeon)
         result = dungeon.keyresult.value,
         resultstring = dungeon.keyresult.name,
         season = dungeon.season,
+        damage = dungeon.party[player].damage,
+        healing = dungeon.party[player].healing,
+        uuid = dungeon.uuid,
+        timeToComplete = dungeon.timeToComplete,
+        deaths = playerdata.deaths or 0,
+        date = dungeon.date.date
     }
     if key.result == KeyCount.defaults.keyresult.intime.value then
         d.intime = d.intime + 1
@@ -368,13 +400,25 @@ local function savePlayer(players, player, playerdata, dungeon)
         d.abandoned = d.abandoned + 1
     end
     table.insert(d.dungeons, key)
+
+    -- Median and best key
+    local dungeonlevels = KeyCount.util.getListOfValues(d.dungeons, "level")
+    local median = d.median or 0
+    local best = d.best or 0
+    if dungeonlevels then
+        median = KeyCount.util.calculateMedian(dungeonlevels)
+        table.sort(dungeonlevels)
+        best = dungeonlevels[#dungeonlevels]
+    end
+    d.median = median
+    d.best = best
+
     players[player][season][role] = table.copy({}, d)
     return players, updated
 end
 
 function KeyCount:SaveAllPlayers(dungeons)
     if not dungeons then return end
-    printf("Checking player database", nil, true)
     local players = KeyCountDB.players or {}
     local amt = 0
     for _, dungeon in ipairs(dungeons) do
@@ -397,7 +441,11 @@ function KeyCount:SaveAllPlayers(dungeons)
         msg = msg .. ": " .. amt .. " players added to the database"
     end
     printf(msg, nil, true)
-    KeyCountDB.players = table.copy({}, players)
+    if next(players) ~= nil then
+        KeyCountDB.players = table.copy({}, players)
+    else
+        printf('player list is empty, not saving to database!', KeyCount.defaults.colors.chatWarning, true)
+    end
 end
 
 function KeyCount:GetPartyMemberInfo()
@@ -407,7 +455,8 @@ function KeyCount:GetPartyMemberInfo()
         info = self:GetPlayerInfo()
     else
         for i = 1, numGroupMembers do
-            local name, _, _, _, class, _, _, _, _, _, _, role = GetRaidRosterInfo(i)
+            local _name, _, _, _, class, _, _, _, _, _, _, role = GetRaidRosterInfo(i)
+            local name = KeyCount.util.addRealmToName(_name)
             info[name] = { name = name, class = class, role = role }
         end
     end
@@ -417,7 +466,8 @@ end
 function KeyCount:GetPlayerInfo()
     local specIndex = GetSpecialization()
     local _, spec, _, _, specRole = GetSpecializationInfo(specIndex)
-    local name = UnitName("player")
+    local _name = UnitName("player")
+    local name = KeyCount.util.addRealmToName(_name)
     local class = UnitClass("player")
     local info = {}
     info[name] = {
@@ -437,10 +487,22 @@ function KeyCount:GetStoredDungeons()
     return KeyCountDB.dungeons
 end
 
+---Get data for all players stored in the database
+---@return table|nil T Table of players or nil if no players found
+function KeyCount:GetStoredPlayers()
+    if not KeyCountDB or next(KeyCountDB) == nil or next(KeyCountDB.players) == nil then
+        printf("No players stored!", KeyCount.defaults.colors.chatError, true)
+        return nil
+    end
+    return KeyCountDB.players
+end
+
 function KeyCount:SetDetailsData()
     local detailsParty = self.details:getAll()
     if detailsParty then
         for player, data in pairs(detailsParty) do
+            printf("Setting " .. player)
+            player = KeyCount.util.addRealmToName(player)
             local d = data.damage or {}
             local h = data.healing or {}
             local partyplayer = self.current.party[player] or {}
@@ -459,6 +521,7 @@ function KeyCount:SetDetailsData()
                     self.defaults.colors.chatError, true)
             end
         end
+        Log("Details data has been stored")
         self.details:resetCombat()
     end
 end

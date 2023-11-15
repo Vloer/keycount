@@ -2,38 +2,58 @@ GUI = {}
 function GUI:ConstructGUI()
     self.widgets = {}
     self.tables = {}
-    self.boxes = {}
     self.buttons = {}
+    self.players = {}
     self.dungeons = {}
     self.data = {}
+    self.dataPlayers = {}
     self.dataLoadedForExport = false
+    self.key = ""
+    self.value = ""
+    self.filter = KeyCount.filterkeys[KeyCount.defaults.gui.filter]
+    self.view = KeyCount.defaults.gui.view
     local AceGUI = LibStub("AceGUI-3.0")
 
+    --#region Helper functions
     local function resetFilters()
         self.key = ""
         self.value = ""
         self.filter = KeyCount.filterkeys[KeyCount.defaults.gui.filter]
-        self.filtertype = KeyCount.defaults.gui.filterType
+        self.view = KeyCount.defaults.gui.view
     end
 
-    resetFilters()
-
     local function disableFilters(setting)
-        self.boxes.filterKey:SetDisabled(setting)
-        self.boxes.filterKey:SetText("")
+        self.widgets.filterKey:SetDisabled(setting)
+        self.widgets.filterKey:SetText("")
         self.widgets.filterValue:SetDisabled(setting)
         self.widgets.filterValue:SetText("")
     end
 
     local function setFilterKeyValue()
-        self.boxes.filterKey:SetText(self.filter.name)
-        self.boxes.filterKey:SetValue(self.filter.key)
+        self.widgets.filterKey:SetText(self.filter.name)
+        self.widgets.filterKey:SetValue(self.filter.key)
         self.widgets.filterValue:SetText(self.value)
     end
 
     local function resetFilterValue()
         self.widgets.filterValue:SetText("")
         self.value = ""
+    end
+
+    local function hideAllTables()
+        self.tables.list:Hide()
+        self.tables.grouped:Hide()
+        self.tables.rate:Hide()
+        self.tables.searchplayer.dungeons:Hide()
+        self.tables.searchplayer.player:Hide()
+    end
+
+    local function showTableSetData(tbl, data)
+        data = data or self.data
+        tbl:Show()
+        tbl:SetData(data)
+        tbl:SortData()
+        tbl:Refresh()
     end
 
     local function checkDisableFilterValue()
@@ -43,85 +63,94 @@ function GUI:ConstructGUI()
             self.filter.key == "completed" or
             self.filter.key == "alldata" then
             self.widgets.filterValue:SetDisabled(true)
+        elseif self.view == self.views.searchplayer.type then
+            self.filter.key = "player"
+            self.widgets.filterKey:SetText(self.filter.name)
         else
             self.widgets.filterValue:SetDisabled(false)
         end
     end
 
     local function fillTable()
+        hideAllTables()
         --@debug@
-        Log(string.format("fillTable: Calling filterfunc with [%s] [%s] [%s]", self.filtertype, tostring(self.key),
+        Log(string.format("fillTable: Calling filterfunc with [%s] [%s] [%s]", self.view, tostring(self.key),
             tostring(self.value)))
         --@end-debug@
-        self.dungeons = KeyCount.filterfunctions[self.filtertype](self.key, self.value)
-        if not self.dungeons then
-            self.data = {}
+        if self.view == self.views.searchplayer.type then
+            self.players, self.dungeons = KeyCount.filterfunctions[self.view](self.key, self.value)
+            if self.players and self.dungeons then
+                self.dataPlayers, self.data = KeyCount.guipreparedata[self.view](self.players, self.dungeons)
+            else
+                self.dataPlayers = {}
+                self.data = {}
+            end
         else
-            --@debug@
-            Log(string.format("Found %s dungeons", #self.dungeons))
-            --@end-debug@
-            self.data = KeyCount.guipreparedata[self.filtertype](self.dungeons)
+            self.dungeons = KeyCount.filterfunctions[self.view](self.key, self.value)
+            if not self.dungeons then
+                self.data = {}
+            else
+                --@debug@
+                Log(string.format("Found %s dungeons", #self.dungeons))
+                --@end-debug@
+                self.data = KeyCount.guipreparedata[self.view](self.dungeons)
+            end
         end
         --@debug@
         Log(string.format("Data has %s entries", #self.data))
         --@end-debug@
-        if self.filtertype == "rate" then
-            self.tables.list:Hide()
-            self.tables.grouped:Hide()
-            self.tables.rate:Show()
-            self.tables.rate:SetData(self.data)
-            self.tables.rate:Refresh()
-        elseif self.filtertype == "grouped" then
-            self.tables.list:Hide()
-            self.tables.rate:Hide()
-            self.tables.grouped:Show()
-            self.tables.grouped:SetData(self.data)
-            self.tables.grouped:Refresh()
+        if self.view == self.views.rate.type then
+            showTableSetData(self.tables.rate)
+        elseif self.view == self.views.grouped.type then
+            showTableSetData(self.tables.grouped)
+        elseif self.view == self.views.searchplayer.type then
+            showTableSetData(self.tables.searchplayer.player, self.dataPlayers)
+            showTableSetData(self.tables.searchplayer.dungeons, self.data)
         else
-            self.tables.rate:Hide()
-            self.tables.grouped:Hide()
-            self.tables.list:Show()
-            self.tables.list:SetData(self.data)
-            self.tables.list:Refresh()
+            showTableSetData(self.tables.list)
         end
         self.dataLoadedForExport = true
     end
+    --#endregion
 
-    local function c_FilterType(item)
-        self.filtertype = item
+    --#region Callback functions
+    local function c_ChangeView(item)
+        hideAllTables()
+        self.view = item
         self.dataLoadedForExport = false
-        if self.filtertype == "list" then
+        if self.view == self.views.list.type then
             disableFilters(true)
-            self.tables.rate:Hide()
             self.tables.list:Show()
-            self.tables.grouped:Hide()
             self.buttons.exportdata:SetText("Export to CSV")
         else
             disableFilters(false)
             setFilterKeyValue()
             self.key = self.filter.value
-            if self.filtertype == "filter" then
-                self.tables.rate:Hide()
+            if self.view == self.views.filter.type then
                 self.tables.list:Show()
-                self.tables.grouped:Hide()
                 self.buttons.exportdata:SetText("Export to CSV")
-            elseif self.filtertype == "rate" then
+            elseif self.view == self.views.rate.type then
                 self.tables.rate:Show()
-                self.tables.list:Hide()
-                self.tables.grouped:Hide()
                 self.buttons.exportdata:SetText("Export to party")
-            elseif self.filtertype == "grouped" then
-                self.tables.rate:Hide()
-                self.tables.list:Hide()
+            elseif self.view == self.views.grouped.type then
                 self.tables.grouped:Show()
-                self.buttons.exportdata:SetText("Export to CSV")
+                self.buttons.exportdata:SetText("Export to party")
+            elseif self.view == self.views.searchplayer.type then
+                self.tables.searchplayer.player:Show()
+                self.tables.searchplayer.dungeons:Show()
+                self.buttons.exportdata:SetText("")
+                self.filter = KeyCount.filterkeys["player"]
+                self.key = self.filter.value
+                self.widgets.filterKey:SetText(self.filter.name)
+                self.widgets.filterKey:SetDisabled(true)
+                resetFilterValue()
             end
         end
     end
 
     local function c_FilterKey(item)
         self.filter = KeyCount.filterkeys[item]
-        self.boxes.filterKey:SetText(self.filter.name)
+        self.widgets.filterKey:SetText(self.filter.name)
         self.key = self.filter.value
         resetFilterValue()
         checkDisableFilterValue()
@@ -132,7 +161,7 @@ function GUI:ConstructGUI()
     end
 
     local function c_ShowData()
-        if self.filtertype == "list" then
+        if self.view == self.views.list.type then
             self.key = ""
             self.value = ""
         else
@@ -142,83 +171,97 @@ function GUI:ConstructGUI()
     end
 
     local function c_ExportData()
+        if self.view == self.views.searchplayer.type then return end
         if not self.dataLoadedForExport then
-            printf("No data is loaded to be exported! Press 'show data' first!", KeyCount.defaults.colors.chatWarning, true)
+            printf("No data is loaded to be exported! Press 'show data' first!", KeyCount.defaults.colors
+                .chatWarning,
+                true)
             return
         end
-        if self.filtertype == "rate" or self.filtertype == "grouped" then
+        if self.view == self.views.rate.type or self.view == self.views.grouped.type then
             KeyCount.utilstats.chatSuccessRate(self.dungeons)
         else
             KeyCount.exportdata.createFrame(self.dungeons)
         end
     end
+    --#endregion
 
+    --#region Frames
+    resetFilters()
     self.frame = AceGUI:Create("Frame")
     local frame = self.frame
     frame:SetTitle("KeyCount")
     frame:SetStatusText("Retrieve some data for your mythic+ runs!")
     frame:SetWidth(self.defaults.frame.size.width)
     frame:SetHeight(self.defaults.frame.size.height)
+    frame:SetLayout("Flow")
     frame:SetCallback("OnClose", function(widget)
         AceGUI:Release(widget)
         resetFilters()
     end)
-    frame:SetLayout("Flow")
+    frame:SetCallback("OnClose", function()
+        hideAllTables()
+    end)
+    --#endregion
 
-    self.boxes.filterType = AceGUI:Create("Dropdown")
-    self.boxes.filterType:SetLabel(self.defaults.boxes.filterType.text)
-    self.boxes.filterType:SetWidth(self.defaults.boxes.filterType.width)
-    self.boxes.filterType:AddItem("list", "All data")
-    self.boxes.filterType:AddItem("filter", "Filter")
-    self.boxes.filterType:AddItem("rate", "Success rate")
-    self.boxes.filterType:AddItem("grouped", "Player success rate")
-    self.boxes.filterType:SetCallback("OnValueChanged", function(widget, event, item) c_FilterType(item) end)
-    self.boxes.filterType:SetValue("list")
-    frame:AddChild(self.boxes.filterType)
+    --#region Widgets
+    self.widgets.view = AceGUI:Create("Dropdown")
+    self.widgets.view:SetLabel(self.defaults.widgets.view.text)
+    self.widgets.view:SetWidth(self.defaults.widgets.view.width)
+    for _, view in ipairs(self.defaults.viewOrder) do
+        self.widgets.view:AddItem(self.views[view].type, self.views[view].name)
+    end
+    self.widgets.view:SetValue(self.defaults.view)
 
-    self.boxes.filterKey = AceGUI:Create("Dropdown")
-    self.boxes.filterKey:SetLabel(self.defaults.boxes.filterKey.text)
-    self.boxes.filterKey:SetWidth(self.defaults.boxes.filterKey.width)
+    self.widgets.filterKey = AceGUI:Create("Dropdown")
+    self.widgets.filterKey:SetLabel(self.defaults.widgets.filterKey.text)
+    self.widgets.filterKey:SetWidth(self.defaults.widgets.filterKey.width)
     for _, key in pairs(KeyCount.filterorder) do
         local f = KeyCount.filterkeys[key].key
         local name = KeyCount.filterkeys[key].name
-        self.boxes.filterKey:AddItem(f, name)
+        self.widgets.filterKey:AddItem(f, name)
     end
-    self.boxes.filterKey:SetCallback("OnValueChanged", function(widget, event, item) c_FilterKey(item) end)
-    self.boxes.filterKey:SetDisabled(true)
-    frame:AddChild(self.boxes.filterKey)
+    self.widgets.filterKey:SetDisabled(true)
 
     self.widgets.filterValue = AceGUI:Create("EditBox")
     self.widgets.filterValue:SetLabel(self.defaults.widgets.filterValue.text)
     self.widgets.filterValue:SetWidth(self.defaults.widgets.filterValue.width)
-    self.widgets.filterValue:SetCallback("OnEnterPressed", function(widget, event, text) c_FilterValue(text) end)
     self.widgets.filterValue:SetDisabled(true)
-    frame:AddChild(self.widgets.filterValue)
 
     self.buttons.showdata = AceGUI:Create("Button")
     self.buttons.showdata:SetText(self.defaults.buttons.showdata.text)
     self.buttons.showdata:SetWidth(self.defaults.buttons.showdata.width)
-    self.buttons.showdata:SetCallback("OnClick", c_ShowData)
-    frame:AddChild(self.buttons.showdata)
 
     self.buttons.exportdata = AceGUI:Create("Button")
     self.buttons.exportdata:SetText(self.defaults.buttons.exportdata.text)
     self.buttons.exportdata:SetWidth(self.defaults.buttons.exportdata.width)
-    self.buttons.exportdata:SetCallback("OnClick", c_ExportData)
-    frame:AddChild(self.buttons.exportdata)
 
-    -- Tables
+    self.widgets.view:SetCallback("OnValueChanged", function(widget, event, item) c_ChangeView(item) end)
+    self.widgets.filterKey:SetCallback("OnValueChanged", function(widget, event, item) c_FilterKey(item) end)
+    self.widgets.filterValue:SetCallback("OnEnterPressed", function(widget, event, text) c_FilterValue(text) end)
+    self.buttons.showdata:SetCallback("OnClick", c_ShowData)
+    self.buttons.exportdata:SetCallback("OnClick", c_ExportData)
+
+    frame:AddChild(self.widgets.view)
+    frame:AddChild(self.widgets.filterKey)
+    frame:AddChild(self.widgets.filterValue)
+    frame:AddChild(self.buttons.showdata)
+    frame:AddChild(self.buttons.exportdata)
+    --#endregion
+
+    --#region Tables
     local window = frame.frame
     local ScrollingTable = LibStub("ScrollingTable");
+    --#region Table columns
     local columnsList = {
-        { ["name"] = "Name",    ["width"] = 100 },
+        { ["name"] = "Name",    ["width"] = 150 },
         { ["name"] = "Dungeon", ["width"] = 150, },
         { ["name"] = "Level",   ["width"] = 55, },
         { ["name"] = "Result",  ["width"] = 90, },
-        { ["name"] = "Deaths",  ["width"] = 55,  ["KeyCount.defaultsort"] = "dsc" },
+        { ["name"] = "Deaths",  ["width"] = 55, },
         { ["name"] = "Time",    ["width"] = 60, },
         { ["name"] = "Dps",     ["width"] = 55 },
-        { ["name"] = "Date",    ["width"] = 90, },
+        { ["name"] = "Date",    ["width"] = 90,  ["defaultsort"] = "dsc" },
         { ["name"] = "Affixes", ["width"] = 200, },
     }
     local columnsRate = {
@@ -250,6 +293,7 @@ function GUI:ConstructGUI()
 
     local columnsGrouped = {
         { ["name"] = "Player",       ["width"] = 150, },
+        { ["name"] = "Score",        ["width"] = 55, },
         { ["name"] = "Amount",       ["width"] = 55, },
         { ["name"] = "Success rate", ["width"] = 75, },
         {
@@ -273,12 +317,58 @@ function GUI:ConstructGUI()
         { ["name"] = "Best",    ["width"] = 55, },
         { ["name"] = "Median",  ["width"] = 55, },
         { ["name"] = "Max dps", ["width"] = 55, },
+        { ["name"] = "Max hps", ["width"] = 55, },
     }
 
+    local columnsSearchPlayerPlayer = {
+        { ["name"] = "Player",       ["width"] = 150, },
+        { ["name"] = "Score",        ["width"] = 55, },
+        { ["name"] = "Amount",       ["width"] = 55, },
+        { ["name"] = "Success rate", ["width"] = 75, },
+        {
+            ["name"] = KeyCount.defaults.keyresult.intime.name,
+            ["width"] = 55,
+            ["color"] = KeyCount.util.convertRgb(KeyCount.defaults.colors.rating
+                [5].rgb)
+        },
+        {
+            ["name"] = KeyCount.defaults.keyresult.outtime.name,
+            ["width"] = 75,
+            ["color"] = KeyCount.util.convertRgb(KeyCount.defaults.colors.rating
+                [3].rgb)
+        },
+        {
+            ["name"] = KeyCount.defaults.keyresult.abandoned.name,
+            ["width"] = 60,
+            ["color"] = KeyCount.util.convertRgb(KeyCount.defaults.colors.rating
+                [1].rgb)
+        },
+        { ["name"] = "Best",    ["width"] = 55, },
+        { ["name"] = "Median",  ["width"] = 55, },
+        { ["name"] = "Max dps", ["width"] = 55, },
+        { ["name"] = "Max hps", ["width"] = 55, },
+    }
+
+    local columnsSearchPlayerDungeons = {
+        { ["name"] = "Season",  ["width"] = 100, },
+        { ["name"] = "Dungeon", ["width"] = 150, },
+        { ["name"] = "Level",   ["width"] = 55, },
+        { ["name"] = "Result",  ["width"] = 90, },
+        { ["name"] = "Time",    ["width"] = 60, },
+        { ["name"] = "Deaths",  ["width"] = 55, },
+        { ["name"] = "Dps",     ["width"] = 55, },
+        { ["name"] = "Hps",     ["width"] = 55, },
+        { ["name"] = "Date",    ["width"] = 90, },
+        { ["name"] = "Affixes", ["width"] = 200, },
+    }
+    --#endregion
+
+    --#region Create tables
     self.tables.list = ScrollingTable:CreateST(columnsList, 16, 16, nil, window);
     self.tables.list.frame:SetPoint("TOP", window, "TOP", 0, -100);
     self.tables.list.frame:SetPoint("LEFT", window, "LEFT", 15, 0);
     self.tables.list:EnableSelection(true)
+    self.tables.list:SortData()
     self.tables.list:Hide()
 
     self.tables.rate = ScrollingTable:CreateST(columnsRate, 8, 16, nil, window);
@@ -293,11 +383,20 @@ function GUI:ConstructGUI()
     self.tables.grouped:EnableSelection(true)
     self.tables.grouped:Hide()
 
-    frame:SetCallback("OnClose", function()
-        self.tables.list:Hide()
-        self.tables.rate:Hide()
-        self.tables.grouped:Hide()
-    end)
+    self.tables.searchplayer = {}
+    self.tables.searchplayer.player = ScrollingTable:CreateST(columnsSearchPlayerPlayer, 3, 16, nil, window);
+    self.tables.searchplayer.player.frame:SetPoint("TOP", window, "TOP", 0, -100);
+    self.tables.searchplayer.player.frame:SetPoint("LEFT", window, "LEFT", 15, 0);
+    self.tables.searchplayer.player:EnableSelection(true)
+    self.tables.searchplayer.player:Hide()
+
+    self.tables.searchplayer.dungeons = ScrollingTable:CreateST(columnsSearchPlayerDungeons, 13, 16, nil, window);
+    self.tables.searchplayer.dungeons.frame:SetPoint("TOP", window, "TOP", 0, -180);
+    self.tables.searchplayer.dungeons.frame:SetPoint("LEFT", window, "LEFT", 15, 0);
+    self.tables.searchplayer.dungeons:EnableSelection(true)
+    self.tables.searchplayer.dungeons:Hide()
+    --#endregion
+    --#endregion
 
     -- Required to exit interface on escape press
     _G["KeyCountFrame"] = frame.frame
@@ -310,24 +409,22 @@ end
 GUI.defaults = {
     frame = {
         size = {
-            height = 420,
-            width = 925,
+            height = 450,
+            width = 1000,
         }
     },
     widgets = {
-        filterValue = {
-            text = "Filter value",
-            width = 200
-        }
-    },
-    boxes = {
-        filterType = {
+        view = {
             width = 140,
-            text = "Filter type"
+            text = "Show view"
         },
         filterKey = {
             width = 200,
             text = "Filter key"
+        },
+        filterValue = {
+            text = "Filter value",
+            width = 200
         }
     },
     buttons = {
@@ -339,5 +436,31 @@ GUI.defaults = {
             width = 140,
             text = "Show data"
         }
+    },
+    view = "list",
+    viewOrder = { "list", "filter", "rate", "grouped", "searchplayer"
     }
+}
+
+GUI.views = {
+    list = {
+        type = "list",
+        name = "All data"
+    },
+    filter = {
+        type = "filter",
+        name = "Filter"
+    },
+    rate = {
+        type = "rate",
+        name = "Success rate"
+    },
+    grouped = {
+        type = "grouped",
+        name = "Player success rate"
+    },
+    searchplayer = {
+        type = "searchplayer",
+        name = "Player lookup"
+    },
 }

@@ -1,16 +1,25 @@
 KeyCount.filterfunctions.print = {}
 
-local function noResult()
-    printf("No dungeons matched your filter criteria!", KeyCount.defaults.colors.chatWarning, true)
+--#region Local helper functions
+local function noResult(key, value)
+    local msg = ""
+    key = key or ""
+    value = value or ""
+    if #key > 0 then
+        msg = string.format(" [%s: '%s']", key, value)
+    end
+    printf(string.format("No dungeons matched your filter criteria%s!", msg), KeyCount.defaults.colors.chatWarning, true)
     return nil
 end
 
 local filterConditions = {
     ["alldata"] = function(entry, value)
-        return entry["season"] == KeyCount.defaults.dungeonDefault.season
+        -- return entry["season"] == KeyCount.defaults.dungeonDefault.season
+        return
     end,
     ["player"] = function(entry, value)
-        return string.lower(entry["player"]) == string.lower(value)
+        local _value = KeyCount.util.addRealmToName(value)
+        return string.lower(entry["player"]) == string.lower(_value)
     end,
     ["name"] = function(entry, value)
         return string.lower(entry["name"]) == string.lower(value)
@@ -59,7 +68,8 @@ local filterConditions = {
     end,
     ["role"] = function(entry, value)
         local player = entry.player
-        local role = entry.party[player].role or ""
+        local partydata = entry.party[player] or {}
+        local role = partydata.role or ""
         if value == "all" then return true end
         return string.lower(role) == string.lower(value)
     end
@@ -116,17 +126,12 @@ local function cleanFilterArgs(key, value)
     elseif _key == "date" then
         if #value == 0 then value = date(KeyCount.defaults.dateFormat) end
     elseif _key == "role" then
-        if #value == 0  then value = "all"
+        if #value == 0 then
+            value = "all"
         else
-            value = string.lower(value)
-            if value == "dps" or value == "damager" or value == "damage" then
-                value = "DAMAGER"
-            elseif value == "tank" then
-                value = "TANK"
-            elseif value == "heal" or value == "healer" or value == "healing" then
-                value = "HEALER"
-            else
-                printf("Role filter accepts values 'tank', 'heal' or 'dps'!", KeyCount.defaults.colors.chatWarning)
+            value = KeyCount.util.formatRole(value)
+            if not value then
+                printf("Role filter only accepts valid roles!", KeyCount.defaults.colors.chatWarning)
                 return nil, nil
             end
         end
@@ -147,7 +152,9 @@ local function filterData(tbl, key, value)
 
     -- Table filtering
     for _, entry in ipairs(tbl) do
-        if _key == "season" and entry[_key] ~= nil then
+        if _key == "alldata" then
+            table.insert(result, entry)
+        elseif _key == "season" and entry[_key] ~= nil then
             --@debug@
             Log(string.format("FilterData: dungeon [%s] season [%s]", entry.name, entry.season))
             --@end-debug@
@@ -168,11 +175,44 @@ local function filterData(tbl, key, value)
         end
     end
     if #result == 0 then
-        return noResult()
+        return noResult(key, value)
     end
     return result
 end
 
+---Search a list of playernames for a specific player.
+---Checks name-realm first, then name only and returns the first match if there are multiple.
+---@param playername string Name to search
+---@param db table Database containing all player data
+---@return table|nil T All data for a single player
+local function searchPlayerGetData(playername, db)
+    if not db or next(db) == 0 then return nil end
+    if not playername or #playername == 0 then return nil end
+    if type(playername) ~= "string" then
+        playername = tostring(playername)
+    end
+    local playernameRealm = KeyCount.util.addRealmToName(playername)
+    local _playername = string.lower(playernameRealm)
+    --@debug@
+    Log("Searching player " .. _playername)
+    --@end-debug@
+
+    -- First pass: name-realm
+    for p, data in pairs(db) do
+        if string.lower(p) == _playername then return data end
+    end
+    -- Data is not found, using name only
+    _playername = KeyCount.util.splitString(_playername)
+    for p, data in pairs(db) do
+        p = KeyCount.util.splitString(p)
+        if string.lower(p) == _playername then return data end
+    end
+    printf(string.format("No data found for player %s!", playername), KeyCount.defaults.colors.chatWarning, true)
+    return nil
+end
+--#endregion
+
+--#region Filter functions
 local function filterDungeons(key, value)
     local _dungeons = KeyCount:GetStoredDungeons()
     if not _dungeons then return end
@@ -181,10 +221,30 @@ local function filterDungeons(key, value)
     return filteredDungeons
 end
 
-KeyCount.filterfunctions.list = filterDungeons
-KeyCount.filterfunctions.filter = filterDungeons
+local function filterDungeonsSuccessRate(key, value)
+    local dungeons = filterDungeons(key, value)
+    if dungeons then return KeyCount.utilstats.getDungeonSuccessRate(dungeons) end
+end
 
-function KeyCount.filterfunctions.print.list()
+local function filterDungeonsPlayersGroupedWith(key, value)
+    local dungeons = filterDungeons(key, value)
+    if dungeons then return KeyCount.utilstats.getPlayerSuccessRate(dungeons) end
+end
+
+---Get data required for the 'searchplayer' view in the GUI
+---@param key string Always set to 'player'. Unused
+---@param value string Player name to search
+---@return table|nil T1, table|nil T2 [T1] Stats for the player, [T2] All dungeon stats for the player
+local function filterPlayersSearchPlayer(key, value)
+    local players = KeyCount:GetStoredPlayers()
+    if not players then return end
+    local player = searchPlayerGetData(value, players)
+    if not player then return end
+    local playerdata, dungeondata = KeyCount.utilstats.getPlayerData(player)
+    return playerdata, dungeondata
+end
+
+local function filterDungeonsListPrint(key, value)
     local _dungeons = filterDungeons("", "")
     if not _dungeons then return end
     local dl = KeyCount.util.orderListByPlayer(_dungeons)
@@ -193,7 +253,7 @@ function KeyCount.filterfunctions.print.list()
     end
 end
 
-function KeyCount.filterfunctions.print.filter(key, value)
+local function filterDungeonsFilterPrint(key, value)
     local _dungeons = filterDungeons(key, value)
     if not _dungeons then return end
     local dl = KeyCount.util.orderListByPlayer(_dungeons)
@@ -202,20 +262,20 @@ function KeyCount.filterfunctions.print.filter(key, value)
     end
 end
 
-function KeyCount.filterfunctions.rate(key, value)
-    local dungeons = filterDungeons(key, value)
-    if dungeons then return KeyCount.utilstats.getDungeonSuccessRate(dungeons) end
-end
-
-function KeyCount.filterfunctions.print.rate(key, value)
+local function filterDungeonsSuccessRatePrint(key, value)
     local dungeons = KeyCount.filterfunctions.rate(key, value)
     if dungeons then KeyCount.utilstats.printDungeonSuccessRate(dungeons) end
 end
+--#endregion
 
-function KeyCount.filterfunctions.grouped(key, value)
-    local dungeons = filterDungeons(key, value)
-    if dungeons then return KeyCount.utilstats.getPlayerSuccessRate(dungeons) end
-end
+KeyCount.filterfunctions.list = filterDungeons
+KeyCount.filterfunctions.filter = filterDungeons
+KeyCount.filterfunctions.rate = filterDungeonsSuccessRate
+KeyCount.filterfunctions.grouped = filterDungeonsPlayersGroupedWith
+KeyCount.filterfunctions.searchplayer = filterPlayersSearchPlayer
+KeyCount.filterfunctions.print.list = filterDungeonsListPrint
+KeyCount.filterfunctions.print.filter = filterDungeonsFilterPrint
+KeyCount.filterfunctions.print.rate = filterDungeonsSuccessRatePrint
 
 KeyCount.filterkeys = {
     ["alldata"] = { key = "alldata", value = "", name = "All data" },
@@ -227,7 +287,7 @@ KeyCount.filterkeys = {
     ["intime"] = { key = "intime", value = "intime", name = "Completed in time" },
     ["outtime"] = { key = "outtime", value = "outtime", name = "Completed out of time" },
     ["abandoned"] = { key = "abandoned", value = "abandoned", name = "Abandoned" },
-    ["level"] = { key = "level", value = "level", name = "Key level" },
+    ["level"] = { key = "level", value = "level", name = "Minimum key level" },
     ["time"] = { key = "time", value = "time", name = "Time" },
     ["deathsgt"] = { key = "deathsgt", value = "deathsgt", name = "Minimum amount of deaths" },
     ["deathslt"] = { key = "deathslt", value = "deathslt", name = "Maximum amount of deaths" },
@@ -238,5 +298,5 @@ KeyCount.filterkeys = {
 KeyCount.filterorder = {
     "alldata", "player", "dungeon", "role", "season",
     "completed", "intime", "outtime", "abandoned", "level",
-    "time", "deathsgt", "deathslt", "date", "affix" }
-
+    "time", "deathsgt", "deathslt", "date", "affix"
+}
