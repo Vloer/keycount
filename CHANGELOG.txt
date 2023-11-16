@@ -1,21 +1,8 @@
+- Changed Dawn of the Infinite to DOTI in the GUI
+- Increased success rate table height
+- Removed error message when trying to save Sanguine details data
+
+v0.6 changelog:
 - Added player search function
 - Added weighted player score
 - Added realm name to all players (also on own realm)
-
-v0.5 changelog:
-- Added "Player success rate" tab. Shows amount of times you have grouped with each unique player and the success rate with that player
-- Added median key and max dps columns to success rate tab
-- Added role filter. Accepts heal, tank, dps, healer, damager, healing, damage, all, <empty>
-- Added season to csv export 
-- Fixed a bug in date filter, should now work properly
-- Backend improvements: dungeon data in old format should now be converted, reducing chance for errors
-- Fixed bug where player damage/healing was not being stored correctly in some cases
-- Added party damage and healing to csv export
-- Disabled filter edit box when necessary
-- Improved backend for player success rate
-- Addon now fixes all database entries once on login
-- Added which filter is used to party export message
-- Enabled Uldaman filter through shortcut (ULD)
-- Fixed bug where errors would not be caught successfully
-- Fixed bug where dungeon data would not be saved if details addon is disabled
-- Added safety check when showing data in the GUI. This should make sure that valid data is always shown, even if there are corrupted entries in the data

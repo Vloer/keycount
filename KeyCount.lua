@@ -501,7 +501,6 @@ function KeyCount:SetDetailsData()
     local detailsParty = self.details:getAll()
     if detailsParty then
         for player, data in pairs(detailsParty) do
-            printf("Setting " .. player)
             player = KeyCount.util.addRealmToName(player)
             local d = data.damage or {}
             local h = data.healing or {}
@@ -516,9 +515,19 @@ function KeyCount:SetDetailsData()
                     hps = h.hps or 0
                 }
             else
-                printf(
-                    string.format("Warning: something likely went wrong with the recording of Details data! [%s]", player),
-                    self.defaults.colors.chatError, true)
+                local ignore = false
+                for _, ignored in ipairs(self.details.ignoreDungeonAbilities) do
+                    if string.find(player, ignored) then
+                        ignore = true
+                        break
+                    end
+                end
+                if not ignore then
+                    printf(
+                        string.format("Warning: something likely went wrong with the recording of Details data! [%s]",
+                            player),
+                        self.defaults.colors.chatError, true)
+                end
             end
         end
         Log("Details data has been stored")

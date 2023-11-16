@@ -162,10 +162,23 @@ local function getPlayerDpsString(dungeon)
     return ""
 end
 
+---Format dungeon name (shorten in most cases)
+---@param name string
+---@return string
+local function formatDungeonName(name)
+    if not name then return "" end
+    if not type(name) == "string" then return tostring(name) end
+    if #name >= 30 then
+        name = string.gsub(name, "Dawn of the Infinite", "DOTI")
+    end
+    return name
+end
+
+--#region Create row data
 local function prepareRowList(dungeon)
     local row = {}
     local player = dungeon.player
-    local name = dungeon.name
+    local name = formatDungeonName(dungeon.name)
     local level = dungeon.keydata.level
     local result = dungeon.keyresult.name
     local resultColor = getResultColor(dungeon)
@@ -194,7 +207,7 @@ end
 
 local function prepareRowRate(dungeon)
     local row = {}
-    local name = dungeon.name
+    local name = formatDungeonName(dungeon.name)
     local attempts = dungeon.totalEntries
     local rate = dungeon.successRate
     local rateString = string.format("%.2f%%", rate)
@@ -306,7 +319,7 @@ local function prepareRowSearchPlayerDungeon(dungeon)
     --@end-debug@
     local row = {}
     local season = dungeon.season
-    local name = dungeon.name
+    local name = formatDungeonName(dungeon.name)
     local nameWithRole = getRoleIcon(dungeon.role) .. name
     local level = dungeon.level
     local levelColor = getLevelColor(level).color
@@ -334,6 +347,7 @@ local function prepareRowSearchPlayerDungeon(dungeon)
     table.insert(row, { value = affixes })
     return { cols = row }
 end
+--#endregion
 
 ---Helper function that inserts data into a table if data was retrieved without any errors.
 ---@param success boolean

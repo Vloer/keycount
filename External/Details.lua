@@ -1,5 +1,10 @@
 local d = {}
 
+d.ignoreDungeonAbilities = {
+    "Soul Thorns",
+    "Sanguine Ichor",
+}
+
 function d:setDetailsAttribute()
     if self.details then return end
     local details = _G.Details

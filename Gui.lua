@@ -371,7 +371,7 @@ function GUI:ConstructGUI()
     self.tables.list:SortData()
     self.tables.list:Hide()
 
-    self.tables.rate = ScrollingTable:CreateST(columnsRate, 8, 16, nil, window);
+    self.tables.rate = ScrollingTable:CreateST(columnsRate, 16, 16, nil, window);
     self.tables.rate.frame:SetPoint("TOP", window, "TOP", 0, -100);
     self.tables.rate.frame:SetPoint("LEFT", window, "LEFT", 15, 0);
     self.tables.rate:EnableSelection(true)

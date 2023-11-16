@@ -54,10 +54,12 @@ local defaults = {
         BRH = "Black Rook Hold",
         DHT = "Darkheart Thicket",
         EB = "Everbloom",
-        TOT = "Throne of the Tides",
+        TOTT = "Throne of the Tides",
         WM = "Waycrest Manor",
         GF = "Dawn of the Infinite: Galakrond's Fall",
-        MR = "Dawn of the Infinite: Murozond's Rise"
+        FALL = "Dawn of the Infinite: Galakrond's Fall",
+        MR = "Dawn of the Infinite: Murozond's Rise",
+        RISE = "Dawn of the Infinite: Murozond's Rise",
     },
     partymember = {
         role = "",
