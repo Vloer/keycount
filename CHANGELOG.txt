@@ -1,8 +1,12 @@
 - Changed Dawn of the Infinite to DOTI in the GUI
 - Increased success rate table height
 - Removed error message when trying to save Sanguine details data
+- Removed error when zoning into timeways area
+
 
 v0.6 changelog:
 - Added player search function
 - Added weighted player score
 - Added realm name to all players (also on own realm)
+- Changed Dawn of the Infinite to DOTI in the GUI
+- Increased success rate table height

@@ -35,6 +35,7 @@ end
 
 function KeyCount:ZONE_CHANGED_NEW_AREA(event)
     local mapID = C_Map.GetBestMapForUnit("player")
+    if not mapID then return end
     self.mapInfo = C_Map.GetMapInfo(mapID)
     KeyCount:CheckIfInDungeon()
 end
