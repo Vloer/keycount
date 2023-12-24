@@ -250,7 +250,18 @@ function KeyCount:SetTimeToComplete()
         if self.current.totalDeaths > 0 and timeLost == 0 then
             timeLost = self.current.totalDeaths * 5
         end
-        self.current.time = timeEnd - timeStart + timeLost
+        -- Safety checks
+        timeEnd = timeEnd or 0
+        timeStart = timeStart or 0
+        timeLost = timeLost or 0
+        if timeStart == 0 or timeEnd == 0 then
+            local errorMsg = string.format("Error in collecting dungeon time. Dungeon time will not be saved. TimeStart (%s), TimeEnd (%s), TimeLost (%s). Please report the error to the author!")
+            printf(errorMsg, KeyCount.defaults.colors.chatError, true)
+            Log(errorMsg)
+            self.current.time = 0
+        else
+            self.current.time = timeEnd - timeStart + timeLost
+        end
     end
     self.current.timeToComplete = KeyCount.util.formatTimestamp(self.current.time)
     if self.current.keyresult.value == self.defaults.keyresult.intime.value then

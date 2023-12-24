@@ -1,7 +1,4 @@
-- Changed Dawn of the Infinite to DOTI in the GUI
-- Increased success rate table height
-- Removed error message when trying to save Sanguine details data
-- Removed error when zoning into timeways area
+- Now showing total dungeons in status bar
 
 
 v0.6 changelog:
@@ -10,3 +7,7 @@ v0.6 changelog:
 - Added realm name to all players (also on own realm)
 - Changed Dawn of the Infinite to DOTI in the GUI
 - Increased success rate table height
+- Changed Dawn of the Infinite to DOTI in the GUI
+- Increased success rate table height
+- Removed error message when trying to save Sanguine details data
+- Removed error when zoning into timeways area

@@ -48,12 +48,29 @@ function GUI:ConstructGUI()
         self.tables.searchplayer.player:Hide()
     end
 
+    ---Set the status text to the amount of dungeons in your filter result
+    ---@param data table Data to be shown
+    local function setStatusText(data)
+        local len
+        local txt
+        if type(data) == "table" then
+            len = #data or 0
+        end
+        if len > 0 then
+            txt = string.format("Found %s results!", tostring(len))
+        else
+            txt = self.defaults.frame.defaultStatusText
+        end
+        self.frame:SetStatusText(txt)
+    end
+
     local function showTableSetData(tbl, data)
         data = data or self.data
         tbl:Show()
         tbl:SetData(data)
         tbl:SortData()
         tbl:Refresh()
+        setStatusText(data)
     end
 
     local function checkDisableFilterValue()
@@ -191,7 +208,7 @@ function GUI:ConstructGUI()
     self.frame = AceGUI:Create("Frame")
     local frame = self.frame
     frame:SetTitle("KeyCount")
-    frame:SetStatusText("Retrieve some data for your mythic+ runs!")
+    frame:SetStatusText(self.defaults.frame.defaultStatusText)
     frame:SetWidth(self.defaults.frame.size.width)
     frame:SetHeight(self.defaults.frame.size.height)
     frame:SetLayout("Flow")
@@ -411,7 +428,8 @@ GUI.defaults = {
         size = {
             height = 450,
             width = 1000,
-        }
+        },
+        defaultStatusText = "Retrieve some data for your mythic+ runs!"
     },
     widgets = {
         view = {
