@@ -1,4 +1,4 @@
-- Now showing total dungeons in status bar
+- Updated for 10.2.5
 
 
 v0.6 changelog:
@@ -11,3 +11,4 @@ v0.6 changelog:
 - Increased success rate table height
 - Removed error message when trying to save Sanguine details data
 - Removed error when zoning into timeways area
+- Now showing total dungeons in status bar
