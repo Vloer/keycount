@@ -348,3 +348,85 @@ KeyCount.util.splitString = function(s, sep)
         return part
     end
 end
+
+---Return todays date in the default format yyyy-mm-dd
+---@return string D Todays date
+KeyCount.util.getDateToday = function()
+    return date(KeyCount.defaults.dateFormat)
+end
+
+---Adds leading zeroes to a date if required
+---@param date string
+---@return string
+KeyCount.util.normalizeDate = function(date)
+    local year, month, day = date:match("(%d+)-(%d+)-(%d+)")
+
+    if year and month and day then
+        month = string.format("%02d", tonumber(month))
+        day = string.format("%02d", tonumber(day))
+
+        return year .. "-" .. month .. "-" .. day
+    else
+        return date
+    end
+end
+
+---Returns the date of the start of the week (adjusted for player locale)
+---@return string StartOfWeek
+KeyCount.util.getStartOfWeekDate = function()
+    local now = C_DateAndTime.GetCurrentCalendarTime()
+    local secsInWeek = 604800
+    local secsUntilReset = C_DateAndTime.GetSecondsUntilWeeklyReset()
+    local secsUntilWeekStart = secsInWeek - secsUntilReset
+    local minsUntilWeekStart = math.floor(secsUntilWeekStart / 60)
+    local start = C_DateAndTime.AdjustTimeByMinutes(now, -minsUntilWeekStart)
+    local startDate = string.format("%s-%s-%s", start.year, start.month, start.monthDay)
+    return KeyCount.util.normalizeDate(startDate)
+end
+
+---Gets a list of all dates in between start date and current date
+---@param startDate string
+---@return table ListOfDates
+KeyCount.util.getAllDatesInRange = function(startDate)
+    local dateList = {}
+    local currentDate = "2024-01-20"
+    local startYear, startMonth, startDay = startDate:match("(%d+)-(%d+)-(%d+)")
+    local currentYear, currentMonth, currentDay = currentDate:match("(%d+)-(%d+)-(%d+)")
+
+    if not startYear or not startMonth or not startDay then return dateList end
+
+    startYear, startMonth, startDay = tonumber(startYear), tonumber(startMonth), tonumber(startDay)
+    local iDate = string.format("%04d-%02d-%02d", startYear, startMonth, startDay)
+
+    local maxDates = 10
+    local i = 0
+
+    while true do
+        i = i + 1
+        if i > maxDates then break end
+
+        table.insert(dateList, iDate)
+        local iYear, iMonth, iDay = iDate:match("(%d+)-(%d+)-(%d+)")
+
+        if iYear == currentYear and iMonth == currentMonth and iDay == currentDay then
+            break
+        end
+
+        iYear, iMonth, iDay = tonumber(iYear), tonumber(iMonth), tonumber(iDay)
+        iDay = iDay + 1
+
+        if iDay > 31 or (iMonth == 4 or iMonth == 6 or iMonth == 9 or iMonth == 11) and iDay > 30 or (iMonth == 2 and ((iYear % 4 == 0 and iYear % 100 ~= 0) or (iYear % 400 == 0)) and iDay > 29 or iDay > 28) then
+            iDay = 1
+            iMonth = iMonth + 1
+        end
+
+        if iMonth > 12 then
+            iMonth = 1
+            iYear = iYear + 1
+        end
+
+        iDate = string.format("%04d-%02d-%02d", iYear, iMonth, iDay)
+    end
+
+    return dateList
+end

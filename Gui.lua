@@ -78,6 +78,7 @@ function GUI:ConstructGUI()
             self.filter.key == "outtime" or
             self.filter.key == "abandoned" or
             self.filter.key == "completed" or
+            self.filter.key == "currentweek" or
             self.filter.key == "alldata" then
             self.widgets.filterValue:SetDisabled(true)
         elseif self.view == self.views.searchplayer.type then

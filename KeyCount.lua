@@ -9,6 +9,9 @@ KeyCount.utilstats = {}
 KeyCount.details = {}
 KeyCount.formatdata = {}
 
+-- TODO
+--  add current week filter
+--  change player filter to current player
 
 -- Event behaviour
 function KeyCount:OnEvent(event, ...)

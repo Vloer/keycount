@@ -21,6 +21,10 @@ local filterConditions = {
         local _value = KeyCount.util.addRealmToName(value)
         return string.lower(entry["player"]) == string.lower(_value)
     end,
+    ["currentweek"] = function(entry, value)
+        local dateInList = KeyCount.util.listContainsItem(entry.date.date, value)
+        return dateInList
+    end,
     ["name"] = function(entry, value)
         return string.lower(entry["name"]) == string.lower(value)
     end,
@@ -124,7 +128,11 @@ local function cleanFilterArgs(key, value)
     elseif _key == "season" then
         if #value == 0 then value = KeyCount.defaults.dungeonDefault.season end
     elseif _key == "date" then
-        if #value == 0 then value = date(KeyCount.defaults.dateFormat) end
+        if #value == 0 then
+            value = KeyCount.util.getDateToday()
+        else
+            value = KeyCount.util.normalizeDate(value)
+        end
     elseif _key == "role" then
         if #value == 0 then
             value = "all"
@@ -135,6 +143,9 @@ local function cleanFilterArgs(key, value)
                 return nil, nil
             end
         end
+    elseif _key == "currentweek" then
+        local startDate = KeyCount.util.getStartOfWeekDate()
+        value = KeyCount.util.getAllDatesInRange(startDate)
     end
     if _key ~= "affix" then
         Log(string.format("FILTER <%s> <%s>", _key, tostring(value)))
@@ -280,6 +291,7 @@ KeyCount.filterfunctions.print.rate = filterDungeonsSuccessRatePrint
 KeyCount.filterkeys = {
     ["alldata"] = { key = "alldata", value = "", name = "All data" },
     ["player"] = { key = "player", value = "player", name = "Player" },
+    ["currentweek"] = { key = "currentweek", value = "currentweek", name = "Current Week" },
     ["dungeon"] = { key = "dungeon", value = "name", name = "Dungeon" },
     ["role"] = { key = "role", value = "role", name = "Player role" },
     ["season"] = { key = "season", value = "season", name = "Season" },
@@ -296,7 +308,7 @@ KeyCount.filterkeys = {
 }
 
 KeyCount.filterorder = {
-    "alldata", "player", "dungeon", "role", "season",
+    "alldata", "player", "currentweek", "dungeon", "role", "season",
     "completed", "intime", "outtime", "abandoned", "level",
     "time", "deathsgt", "deathslt", "date", "affix"
 }

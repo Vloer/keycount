@@ -1,4 +1,4 @@
-- Updated for 10.2.5
+- Added filter for current week only
 
 
 v0.6 changelog:
