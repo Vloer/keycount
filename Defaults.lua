@@ -134,6 +134,8 @@ local defaults = {
     },
     filter = { key = "alldata", value = "" },
     dungeonPlusChar = "*",
+    expansion = "Dragonflight",
+    seasons = seasons,
 }
 
 KeyCount.defaults = defaults

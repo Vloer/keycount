@@ -1,4 +1,5 @@
-- Added filter for current week only
+- Removed all data view
+- Added checkboxes to improve filtering (disabled on player lookup for now)
 
 
 v0.6 changelog:
@@ -12,3 +13,4 @@ v0.6 changelog:
 - Removed error message when trying to save Sanguine details data
 - Removed error when zoning into timeways area
 - Now showing total dungeons in status bar
+- Added filter for current week only

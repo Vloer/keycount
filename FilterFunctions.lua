@@ -76,14 +76,16 @@ local filterConditions = {
         local role = partydata.role or ""
         if value == "all" then return true end
         return string.lower(role) == string.lower(value)
-    end
+    end,
+    ["season"] = function(entry, value)
+        return entry.season == value
+    end,
 }
 
 ---Gets the correct key and values for specified keys and values
 ---@param key string
 ---@param value any
----@return string|nil key
----@return any value
+---@return string|nil cleanedKey, any cleanedValue
 local function cleanFilterArgs(key, value)
     if #key == 0 and #value == 0 then
         return KeyCount.defaults.filter.key, KeyCount.defaults.filter.value
@@ -126,7 +128,13 @@ local function cleanFilterArgs(key, value)
         end
         value = values
     elseif _key == "season" then
-        if #value == 0 then value = KeyCount.defaults.dungeonDefault.season end
+        if #value == 0 then
+            value = KeyCount.defaults.dungeonDefault.season
+        elseif KeyCount.util.listContainsItem(value, { "1", "2", "3" }) then
+            local seasonNumber = tonumber(value)
+            local expansion = KeyCount.defaults.expansion
+            value = KeyCount.defaults.seasons[expansion][seasonNumber] or KeyCount.defaults.dungeonDefault.season
+        end
     elseif _key == "date" then
         if #value == 0 then
             value = KeyCount.util.getDateToday()
@@ -153,6 +161,11 @@ local function cleanFilterArgs(key, value)
     return _key, value
 end
 
+---Filters data based on key (filter type) and value (filter value)
+---@param tbl table
+---@param key string
+---@param value string | number | table | nil
+---@return table | nil
 local function filterData(tbl, key, value)
     local result = {}
     local _key, _value = cleanFilterArgs(key, value)
@@ -165,14 +178,7 @@ local function filterData(tbl, key, value)
     for _, entry in ipairs(tbl) do
         if _key == "alldata" then
             table.insert(result, entry)
-        elseif _key == "season" and entry[_key] ~= nil then
-            --@debug@
-            Log(string.format("FilterData: dungeon [%s] season [%s]", entry.name, entry.season))
-            --@end-debug@
-            if _value == "all" or string.lower(entry[_key]) == string.lower(_value) then
-                table.insert(result, entry)
-            end
-        elseif entry["season"] == KeyCount.defaults.dungeonDefault.season then
+        else
             --@debug@
             Log(string.format("FilterData: dungeon [%s] _key [%s] _value [%s]", entry.name, _key, tostring(_value)))
             --@end-debug@
@@ -224,22 +230,27 @@ end
 --#endregion
 
 --#region Filter functions
-local function filterDungeons(key, value)
-    local _dungeons = KeyCount:GetStoredDungeons()
+---Apply filter to dungeons
+---@param dungeons table|nil
+---@param key string Filter key
+---@param value any Filter value
+---@return table|nil T
+local function filterDungeons(dungeons, key, value)
+    local _dungeons = dungeons or KeyCount:GetStoredDungeons()
     if not _dungeons then return end
     local filteredDungeons = filterData(_dungeons, key, value)
     if not filteredDungeons then return end
     return filteredDungeons
 end
 
-local function filterDungeonsSuccessRate(key, value)
-    local dungeons = filterDungeons(key, value)
-    if dungeons then return KeyCount.utilstats.getDungeonSuccessRate(dungeons) end
+local function filterDungeonsSuccessRate(dungeons, key, value)
+    local _dungeons = filterDungeons(dungeons, key, value)
+    if _dungeons then return KeyCount.utilstats.getDungeonSuccessRate(_dungeons) end
 end
 
-local function filterDungeonsPlayersGroupedWith(key, value)
-    local dungeons = filterDungeons(key, value)
-    if dungeons then return KeyCount.utilstats.getPlayerSuccessRate(dungeons) end
+local function filterDungeonsPlayersGroupedWith(dungeons, key, value)
+    local _dungeons = filterDungeons(dungeons, key, value)
+    if _dungeons then return KeyCount.utilstats.getPlayerSuccessRate(_dungeons) end
 end
 
 ---Get data required for the 'searchplayer' view in the GUI
@@ -256,7 +267,8 @@ local function filterPlayersSearchPlayer(key, value)
 end
 
 local function filterDungeonsListPrint(key, value)
-    local _dungeons = filterDungeons("", "")
+    local d = KeyCount:GetStoredDungeons()
+    local _dungeons = filterDungeons(d, "", "")
     if not _dungeons then return end
     local dl = KeyCount.util.orderListByPlayer(_dungeons)
     for _, dungeons in pairs(dl) do
@@ -265,7 +277,8 @@ local function filterDungeonsListPrint(key, value)
 end
 
 local function filterDungeonsFilterPrint(key, value)
-    local _dungeons = filterDungeons(key, value)
+    local d = KeyCount:GetStoredDungeons()
+    local _dungeons = filterDungeons(d, key, value)
     if not _dungeons then return end
     local dl = KeyCount.util.orderListByPlayer(_dungeons)
     for _, dungeons in pairs(dl) do
@@ -274,8 +287,20 @@ local function filterDungeonsFilterPrint(key, value)
 end
 
 local function filterDungeonsSuccessRatePrint(key, value)
-    local dungeons = KeyCount.filterfunctions.rate(key, value)
+    local d = KeyCount:GetStoredDungeons()
+    local dungeons = KeyCount.filterfunctions.rate(d, key, value)
     if dungeons then KeyCount.utilstats.printDungeonSuccessRate(dungeons) end
+end
+
+---Apply any filter to a set of data
+---@param data table
+---@param key string | nil
+---@param value string | number | table | nil
+---@return table | nil filteredData
+function KeyCount.filterfunctions.applyfilter(data, key, value)
+    key = key or ""
+    value = value or ""
+    return filterData(data, key, value)
 end
 --#endregion
 
@@ -308,7 +333,7 @@ KeyCount.filterkeys = {
 }
 
 KeyCount.filterorder = {
-    "alldata", "player", "currentweek", "dungeon", "role", "season",
-    "completed", "intime", "outtime", "abandoned", "level",
+    "alldata", "player", "dungeon", "role", "season",
+    "completed", "outtime", "abandoned", "level",
     "time", "deathsgt", "deathslt", "date", "affix"
 }

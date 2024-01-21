@@ -196,7 +196,7 @@ KeyCount.util.printTableOnSameLine = function(table, name)
         end
     end
     output = output:sub(1, -3)
-    Log(string.format("%s: %s", name, output))
+    --Log(string.format("%s: %s", name, output))
 end
 
 -- Calculate the median of a list of values

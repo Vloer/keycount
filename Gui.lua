@@ -3,6 +3,7 @@ function GUI:ConstructGUI()
     self.widgets = {}
     self.tables = {}
     self.buttons = {}
+    self.checkboxes = {}
     self.players = {}
     self.dungeons = {}
     self.data = {}
@@ -89,27 +90,70 @@ function GUI:ConstructGUI()
         end
     end
 
+    ---Disables or enables all checkboxes
+    ---@param flag boolean True to disable
+    local function disableCheckboxes(flag)
+        self.checkboxes.character:SetDisabled(flag)
+        self.checkboxes.currentweek:SetDisabled(flag)
+        self.checkboxes.currentseason:SetDisabled(flag)
+        self.checkboxes.intime:SetDisabled(flag)
+    end
+
+    ---Applies additional filters to dataset based on active checkboxes
+    ---@param data table
+    ---@return table
+    local function applyCheckboxFilters(data)
+        --@debug@
+        Log(string.format("Checkboxes: character %s, week %s, season %s, intime %s",
+            tostring(self.checkboxes.character:GetValue()),
+            tostring(self.checkboxes.currentweek:GetValue()),
+            tostring(self.checkboxes.currentseason:GetValue()),
+            tostring(self.checkboxes.intime:GetValue())
+        ))
+        --@end-debug@
+        if self.checkboxes.character:GetValue() then
+            Log("Applying checkbox character")
+            data = KeyCount.filterfunctions.applyfilter(data, self.defaults.checkboxes.character.filter.key) or {}
+        end
+        if self.checkboxes.currentweek:GetValue() then
+            Log("Applying checkbox week")
+            data = KeyCount.filterfunctions.applyfilter(data, self.defaults.checkboxes.currentweek.filter.key) or {}
+        end
+        if self.checkboxes.currentseason:GetValue() then
+            Log("Applying checkbox season")
+            data = KeyCount.filterfunctions.applyfilter(data, self.defaults.checkboxes.currentseason.filter.key) or {}
+        end
+        if self.checkboxes.intime:GetValue() then
+            Log("Applying checkbox intime")
+            data = KeyCount.filterfunctions.applyfilter(data, self.defaults.checkboxes.intime.filter.key) or {}
+        end
+        return data
+    end
+
     local function fillTable()
         hideAllTables()
         --@debug@
         Log(string.format("fillTable: Calling filterfunc with [%s] [%s] [%s]", self.view, tostring(self.key),
             tostring(self.value)))
         --@end-debug@
+        local dungeons = KeyCount:GetStoredDungeons() or {}
         if self.view == self.views.searchplayer.type then
             self.players, self.dungeons = KeyCount.filterfunctions[self.view](self.key, self.value)
             if self.players and self.dungeons then
+                --self.dungeons = applyCheckboxFilters(self.dungeons)
                 self.dataPlayers, self.data = KeyCount.guipreparedata[self.view](self.players, self.dungeons)
             else
                 self.dataPlayers = {}
                 self.data = {}
             end
         else
-            self.dungeons = KeyCount.filterfunctions[self.view](self.key, self.value)
+            dungeons = applyCheckboxFilters(dungeons)
+            self.dungeons = KeyCount.filterfunctions[self.view](dungeons, self.key, self.value)
             if not self.dungeons then
                 self.data = {}
             else
                 --@debug@
-                Log(string.format("Found %s dungeons", #self.dungeons))
+                Log(string.format("Found %s dungeons after applying checkboxes", #self.dungeons))
                 --@end-debug@
                 self.data = KeyCount.guipreparedata[self.view](self.dungeons)
             end
@@ -136,33 +180,30 @@ function GUI:ConstructGUI()
         hideAllTables()
         self.view = item
         self.dataLoadedForExport = false
-        if self.view == self.views.list.type then
-            disableFilters(true)
+
+        disableFilters(false)
+        disableCheckboxes(false)
+        setFilterKeyValue()
+        self.key = self.filter.value
+        if self.view == self.views.filter.type then
             self.tables.list:Show()
             self.buttons.exportdata:SetText("Export to CSV")
-        else
-            disableFilters(false)
-            setFilterKeyValue()
+        elseif self.view == self.views.rate.type then
+            self.tables.rate:Show()
+            self.buttons.exportdata:SetText("Export to party")
+        elseif self.view == self.views.grouped.type then
+            self.tables.grouped:Show()
+            self.buttons.exportdata:SetText("Export to party")
+        elseif self.view == self.views.searchplayer.type then
+            disableCheckboxes(true)
+            self.tables.searchplayer.player:Show()
+            self.tables.searchplayer.dungeons:Show()
+            self.buttons.exportdata:SetText("")
+            self.filter = KeyCount.filterkeys["player"]
             self.key = self.filter.value
-            if self.view == self.views.filter.type then
-                self.tables.list:Show()
-                self.buttons.exportdata:SetText("Export to CSV")
-            elseif self.view == self.views.rate.type then
-                self.tables.rate:Show()
-                self.buttons.exportdata:SetText("Export to party")
-            elseif self.view == self.views.grouped.type then
-                self.tables.grouped:Show()
-                self.buttons.exportdata:SetText("Export to party")
-            elseif self.view == self.views.searchplayer.type then
-                self.tables.searchplayer.player:Show()
-                self.tables.searchplayer.dungeons:Show()
-                self.buttons.exportdata:SetText("")
-                self.filter = KeyCount.filterkeys["player"]
-                self.key = self.filter.value
-                self.widgets.filterKey:SetText(self.filter.name)
-                self.widgets.filterKey:SetDisabled(true)
-                resetFilterValue()
-            end
+            self.widgets.filterKey:SetText(self.filter.name)
+            self.widgets.filterKey:SetDisabled(true)
+            resetFilterValue()
         end
     end
 
@@ -179,20 +220,15 @@ function GUI:ConstructGUI()
     end
 
     local function c_ShowData()
-        if self.view == self.views.list.type then
-            self.key = ""
-            self.value = ""
-        else
-            setFilterKeyValue()
-        end
+        setFilterKeyValue()
         fillTable()
     end
 
     local function c_ExportData()
         if self.view == self.views.searchplayer.type then return end
         if not self.dataLoadedForExport then
-            printf("No data is loaded to be exported! Press 'show data' first!", KeyCount.defaults.colors
-                .chatWarning,
+            printf("No data is loaded to be exported! Press 'show data' first!",
+                KeyCount.defaults.colors.chatWarning,
                 true)
             return
         end
@@ -201,6 +237,26 @@ function GUI:ConstructGUI()
         else
             KeyCount.exportdata.createFrame(self.dungeons)
         end
+    end
+
+    ---Callback function to enable current character only in filter view
+    local function c_CharacterOnly(flag)
+        c_ShowData()
+    end
+
+    ---Callback function to enable current week only in filter view
+    local function c_CurrentWeekOnly(flag)
+        c_ShowData()
+    end
+
+    ---Callback function to enable season week only in filter view
+    local function c_CurrentSeasonOnly(flag)
+        c_ShowData()
+    end
+
+    ---Callback function to enable in time only in filter view
+    local function c_InTimeOnly(flag)
+        c_ShowData()
     end
     --#endregion
 
@@ -246,6 +302,22 @@ function GUI:ConstructGUI()
     self.widgets.filterValue:SetWidth(self.defaults.widgets.filterValue.width)
     self.widgets.filterValue:SetDisabled(true)
 
+    self.checkboxes.character = AceGUI:Create("CheckBox")
+    self.checkboxes.character:SetLabel(self.defaults.checkboxes.character.text)
+    self.checkboxes.character:SetValue(self.defaults.checkboxes.character.state)
+
+    self.checkboxes.currentweek = AceGUI:Create("CheckBox")
+    self.checkboxes.currentweek:SetLabel(self.defaults.checkboxes.currentweek.text)
+    self.checkboxes.currentweek:SetValue(self.defaults.checkboxes.currentweek.state)
+
+    self.checkboxes.currentseason = AceGUI:Create("CheckBox")
+    self.checkboxes.currentseason:SetLabel(self.defaults.checkboxes.currentseason.text)
+    self.checkboxes.currentseason:SetValue(self.defaults.checkboxes.currentseason.state)
+
+    self.checkboxes.intime = AceGUI:Create("CheckBox")
+    self.checkboxes.intime:SetLabel(self.defaults.checkboxes.intime.text)
+    self.checkboxes.intime:SetValue(self.defaults.checkboxes.intime.state)
+
     self.buttons.showdata = AceGUI:Create("Button")
     self.buttons.showdata:SetText(self.defaults.buttons.showdata.text)
     self.buttons.showdata:SetWidth(self.defaults.buttons.showdata.width)
@@ -259,12 +331,23 @@ function GUI:ConstructGUI()
     self.widgets.filterValue:SetCallback("OnEnterPressed", function(widget, event, text) c_FilterValue(text) end)
     self.buttons.showdata:SetCallback("OnClick", c_ShowData)
     self.buttons.exportdata:SetCallback("OnClick", c_ExportData)
+    self.checkboxes.character:SetCallback("OnValueChanged", function(widget, event, value) c_CharacterOnly(value) end)
+    self.checkboxes.currentweek:SetCallback("OnValueChanged", function(widget, event, value) c_CurrentWeekOnly(value) end)
+    self.checkboxes.currentseason:SetCallback("OnValueChanged",
+        function(widget, event, value) c_CurrentSeasonOnly(value) end)
+    self.checkboxes.intime:SetCallback("OnValueChanged", function(widget, event, value) c_InTimeOnly(value) end)
 
     frame:AddChild(self.widgets.view)
     frame:AddChild(self.widgets.filterKey)
     frame:AddChild(self.widgets.filterValue)
     frame:AddChild(self.buttons.showdata)
     frame:AddChild(self.buttons.exportdata)
+    frame:AddChild(self.checkboxes.character)
+    frame:AddChild(self.checkboxes.currentweek)
+    frame:AddChild(self.checkboxes.currentseason)
+    frame:AddChild(self.checkboxes.intime)
+    disableFilters(false)
+    setFilterKeyValue()
     --#endregion
 
     --#region Tables
@@ -383,34 +466,43 @@ function GUI:ConstructGUI()
 
     --#region Create tables
     self.tables.list = ScrollingTable:CreateST(columnsList, 16, 16, nil, window);
-    self.tables.list.frame:SetPoint("TOP", window, "TOP", 0, -100);
-    self.tables.list.frame:SetPoint("LEFT", window, "LEFT", 15, 0);
+    self.tables.list.frame:SetPoint("TOP", window, "TOP", self.defaults.tables.anchors.top.x,
+        self.defaults.tables.anchors.top.y);
+    self.tables.list.frame:SetPoint("LEFT", window, "LEFT", self.defaults.tables.anchors.left.x,
+        self.defaults.tables.anchors.left.y);
     self.tables.list:EnableSelection(true)
     self.tables.list:SortData()
     self.tables.list:Hide()
 
     self.tables.rate = ScrollingTable:CreateST(columnsRate, 16, 16, nil, window);
-    self.tables.rate.frame:SetPoint("TOP", window, "TOP", 0, -100);
-    self.tables.rate.frame:SetPoint("LEFT", window, "LEFT", 15, 0);
+    self.tables.rate.frame:SetPoint("TOP", window, "TOP", self.defaults.tables.anchors.top.x,
+        self.defaults.tables.anchors.top.y);
+    self.tables.rate.frame:SetPoint("LEFT", window, "LEFT", self.defaults.tables.anchors.left.x,
+        self.defaults.tables.anchors.left.y);
     self.tables.rate:EnableSelection(true)
     self.tables.rate:Hide()
 
     self.tables.grouped = ScrollingTable:CreateST(columnsGrouped, 16, 16, nil, window);
-    self.tables.grouped.frame:SetPoint("TOP", window, "TOP", 0, -100);
-    self.tables.grouped.frame:SetPoint("LEFT", window, "LEFT", 15, 0);
+    self.tables.grouped.frame:SetPoint("TOP", window, "TOP", self.defaults.tables.anchors.top.x,
+        self.defaults.tables.anchors.top.y);
+    self.tables.grouped.frame:SetPoint("LEFT", window, "LEFT", self.defaults.tables.anchors.left.x,
+        self.defaults.tables.anchors.left.y);
     self.tables.grouped:EnableSelection(true)
     self.tables.grouped:Hide()
 
     self.tables.searchplayer = {}
     self.tables.searchplayer.player = ScrollingTable:CreateST(columnsSearchPlayerPlayer, 3, 16, nil, window);
-    self.tables.searchplayer.player.frame:SetPoint("TOP", window, "TOP", 0, -100);
-    self.tables.searchplayer.player.frame:SetPoint("LEFT", window, "LEFT", 15, 0);
+    self.tables.searchplayer.player.frame:SetPoint("TOP", window, "TOP", self.defaults.tables.anchors.top.x,
+        self.defaults.tables.anchors.top.y);
+    self.tables.searchplayer.player.frame:SetPoint("LEFT", window, "LEFT", self.defaults.tables.anchors.left.x,
+        self.defaults.tables.anchors.left.y);
     self.tables.searchplayer.player:EnableSelection(true)
     self.tables.searchplayer.player:Hide()
 
-    self.tables.searchplayer.dungeons = ScrollingTable:CreateST(columnsSearchPlayerDungeons, 13, 16, nil, window);
-    self.tables.searchplayer.dungeons.frame:SetPoint("TOP", window, "TOP", 0, -180);
-    self.tables.searchplayer.dungeons.frame:SetPoint("LEFT", window, "LEFT", 15, 0);
+    self.tables.searchplayer.dungeons = ScrollingTable:CreateST(columnsSearchPlayerDungeons, 11, 16, nil, window);
+    self.tables.searchplayer.dungeons.frame:SetPoint("TOP", window, "TOP", self.defaults.tables.anchors.top.x, -210);
+    self.tables.searchplayer.dungeons.frame:SetPoint("LEFT", window, "LEFT", self.defaults.tables.anchors.left.x,
+        self.defaults.tables.anchors.left.y);
     self.tables.searchplayer.dungeons:EnableSelection(true)
     self.tables.searchplayer.dungeons:Hide()
     --#endregion
@@ -456,16 +548,57 @@ GUI.defaults = {
             text = "Show data"
         }
     },
-    view = "list",
-    viewOrder = { "list", "filter", "rate", "grouped", "searchplayer"
-    }
+    checkboxes = {
+        character = {
+            text = "Current character",
+            state = false,
+            filter = {
+                key = "player",
+                value = ""
+            }
+        },
+        currentweek = {
+            text = "Current week",
+            state = false,
+            filter = {
+                key = "currentweek",
+                value = ""
+            }
+        },
+        currentseason = {
+            text = "Current season",
+            state = true,
+            filter = {
+                key = "season",
+                value = KeyCount.defaults.dungeonDefault.season
+            }
+        },
+        intime = {
+            text = "Completed in time",
+            state = false,
+            filter = {
+                key = "intime",
+                value = ""
+            }
+        }
+    },
+    tables = {
+        anchors = {
+            top = {
+                x = 0,
+                y = -130
+            },
+            left = {
+                x = 15,
+                y = 0
+            }
+        }
+    },
+    view = "filter",
+    viewOrder = { "filter", "rate", "grouped", "searchplayer" },
 }
 
 GUI.views = {
-    list = {
-        type = "list",
-        name = "All data"
-    },
     filter = {
         type = "filter",
         name = "Filter"
@@ -483,3 +616,7 @@ GUI.views = {
         name = "Player lookup"
     },
 }
+
+
+g = GUI:ConstructGUI()
+g:Show()
