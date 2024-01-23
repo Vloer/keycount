@@ -256,13 +256,14 @@ end
 ---Get data required for the 'searchplayer' view in the GUI
 ---@param key string Always set to 'player'. Unused
 ---@param value string Player name to search
+---@param season string | nil Season to search. Defaults to all seasons further in the code if nothing is supplied
 ---@return table|nil T1, table|nil T2 [T1] Stats for the player, [T2] All dungeon stats for the player
-local function filterPlayersSearchPlayer(key, value)
+local function filterPlayersSearchPlayer(key, value, season)
     local players = KeyCount:GetStoredPlayers()
     if not players then return end
     local player = searchPlayerGetData(value, players)
     if not player then return end
-    local playerdata, dungeondata = KeyCount.utilstats.getPlayerData(player)
+    local playerdata, dungeondata = KeyCount.utilstats.getPlayerData(player, season)
     return playerdata, dungeondata
 end
 

@@ -1,5 +1,6 @@
 - Removed all data view
-- Added checkboxes to improve filtering (disabled on player lookup for now)
+- Added checkboxes to improve filtering 
+- Only season checkbox is enabled for player lookup
 
 
 v0.6 changelog:

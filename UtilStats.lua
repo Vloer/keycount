@@ -371,11 +371,10 @@ end
 
 ---Retrieve the data of a single player for the 'searchplayer' view in the GUI
 ---@param player table Player data
----@param season string|nil Specify season to retrieve. Defaults to current season. 'all' for all seasons combined.
+---@param season string|nil Specify season to retrieve. Defaults to all seasons.
 ---@param role string|nil Specify for which role we want to retrieve data. Defaults to all roles
 ---@return table|nil T1, table|nil T2 [T1] stats of the player, [T2] all dungeon stats for the player
 function KeyCount.utilstats.getPlayerData(player, season, role)
-    -- local _season = season or KeyCount.defaults.dungeonDefault.season
     local _season = season or "all"
     local _role = KeyCount.util.formatRole(role) or "all"
     local dataByRole = getPlayerDataRoleSeason(player, _role, _season) or {}

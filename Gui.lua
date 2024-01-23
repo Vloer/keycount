@@ -95,7 +95,7 @@ function GUI:ConstructGUI()
     local function disableCheckboxes(flag)
         self.checkboxes.character:SetDisabled(flag)
         self.checkboxes.currentweek:SetDisabled(flag)
-        self.checkboxes.currentseason:SetDisabled(flag)
+        --self.checkboxes.currentseason:SetDisabled(flag)
         self.checkboxes.intime:SetDisabled(flag)
     end
 
@@ -112,19 +112,15 @@ function GUI:ConstructGUI()
         ))
         --@end-debug@
         if self.checkboxes.character:GetValue() then
-            Log("Applying checkbox character")
             data = KeyCount.filterfunctions.applyfilter(data, self.defaults.checkboxes.character.filter.key) or {}
         end
         if self.checkboxes.currentweek:GetValue() then
-            Log("Applying checkbox week")
             data = KeyCount.filterfunctions.applyfilter(data, self.defaults.checkboxes.currentweek.filter.key) or {}
         end
         if self.checkboxes.currentseason:GetValue() then
-            Log("Applying checkbox season")
             data = KeyCount.filterfunctions.applyfilter(data, self.defaults.checkboxes.currentseason.filter.key) or {}
         end
         if self.checkboxes.intime:GetValue() then
-            Log("Applying checkbox intime")
             data = KeyCount.filterfunctions.applyfilter(data, self.defaults.checkboxes.intime.filter.key) or {}
         end
         return data
@@ -138,9 +134,13 @@ function GUI:ConstructGUI()
         --@end-debug@
         local dungeons = KeyCount:GetStoredDungeons() or {}
         if self.view == self.views.searchplayer.type then
-            self.players, self.dungeons = KeyCount.filterfunctions[self.view](self.key, self.value)
+            -- Check if current season checkbox is enabled
+            local currentSeasonOrAll
+            if self.checkboxes.currentseason:GetValue() then
+                currentSeasonOrAll = KeyCount.defaults.dungeonDefault.season
+            end
+            self.players, self.dungeons = KeyCount.filterfunctions[self.view](self.key, self.value, currentSeasonOrAll)
             if self.players and self.dungeons then
-                --self.dungeons = applyCheckboxFilters(self.dungeons)
                 self.dataPlayers, self.data = KeyCount.guipreparedata[self.view](self.players, self.dungeons)
             else
                 self.dataPlayers = {}
