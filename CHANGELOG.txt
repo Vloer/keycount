@@ -1,7 +1,4 @@
-- Removed all data view
-- Added checkboxes to improve filtering 
-- Only season checkbox is enabled for player lookup
-
+- Removed number of system messages
 
 v0.6 changelog:
 - Added player search function
@@ -15,3 +12,6 @@ v0.6 changelog:
 - Removed error when zoning into timeways area
 - Now showing total dungeons in status bar
 - Added filter for current week only
+- Removed all data view
+- Added checkboxes to improve filtering 
+- Only season checkbox is enabled for player lookup

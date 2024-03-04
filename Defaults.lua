@@ -136,6 +136,7 @@ local defaults = {
     dungeonPlusChar = "*",
     expansion = "Dragonflight",
     seasons = seasons,
+    databaseCheckMessageFreq = 10,
 }
 
 KeyCount.defaults = defaults

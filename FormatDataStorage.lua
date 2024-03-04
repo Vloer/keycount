@@ -214,7 +214,9 @@ function KeyCount.formatdata.formatplayers(dungeons, playersIn)
         KeyCountDB.players = {}
         KeyCount:SaveAllPlayers(dungeons)
     else
-        printf("Player database check completed", nil, true)
+        if KeyCount.util.checkIfPrintMessage() then
+            printf("Player database check completed", nil, true)
+        end
     end
 end
 

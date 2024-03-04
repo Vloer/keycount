@@ -19,7 +19,7 @@ function printf(msg, fmt, includeKeycount)
 end
 
 KeyCount.util.welcomeMessage = function(name)
-    local s = KeyCountDB.sessions
+    local s = KeyCountDB.sessions or 0
     local num
     if s == 3 then
         num = "third"
@@ -30,7 +30,9 @@ KeyCount.util.welcomeMessage = function(name)
     else
         num = s .. "th"
     end
-    printf(string.format("Loaded %s for the %s time.", name, num))
+    if s <= 5 or (s > 5 and KeyCount.util.checkIfPrintMessage(5)) then
+        printf(string.format("Loaded %s for the %s time.", name, num))
+    end
 end
 
 -- Call this function to ensure that the code after it is still executed
@@ -429,4 +431,13 @@ KeyCount.util.getAllDatesInRange = function(startDate)
     end
 
     return dateList
+end
+
+---Check if we have to print a message. Occurs once every 10 (default), or specified, addon loads
+---@param freq number|nil
+---@return boolean
+KeyCount.util.checkIfPrintMessage = function(freq)
+    local _freq = freq or KeyCount.defaults.databaseCheckMessageFreq or 0
+    local sessions = KeyCountDB.sessions or 0
+    return math.fmod(sessions, _freq) == 0
 end
