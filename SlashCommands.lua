@@ -53,6 +53,11 @@ function SlashCmdList.KEYCOUNT_EXPORT(msg)
     KeyCount.exportdata.createFrame()
 end
 
+SLASH_KEYCOUNT_FAIL1 = "/kcfail"
+function SlashCmdList.KEYCOUNT_FAIL(msg)
+    KeyCount:SetKeyFailed()
+end
+
 SLASH_KEYCOUNT_HELP1 = "/kchelp"
 SLASH_KEYCOUNT_HELP2 = "/kch"
 function SlashCmdList.KEYCOUNT_HELP(msg)
@@ -76,6 +81,9 @@ function SlashCmdList.KEYCOUNT_HELP(msg)
     printf(" ")
     printf(" [/kce]  |  [/kcexport]")
     printf(" Export all dungeon data to csv format", KeyCount.defaults.colors.chatWarning)
+    printf(" ")
+    printf(" [/kcfail]")
+    printf(" Set the current dungeon run to 'abandoned'.", KeyCount.defaults.colors.chatWarning)
 end
 
 SLASH_KEYCOUNT_FILTEROPTS1 = "/kcfilteroptions"

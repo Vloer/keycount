@@ -98,7 +98,7 @@ local function cleanFilterArgs(key, value)
         value = KeyCount.defaults.dungeonNamesShort[string.upper(key)]
         if not value then return nil, nil end
         _key = "name"
-    elseif _key == "name" and #value <= 3 and #value > 0 then
+    elseif _key == "name" and #value > 0 then
         value = KeyCount.defaults.dungeonNamesShort[string.upper(value)]
         if not value then return nil, nil end
     elseif _key == "completed" then

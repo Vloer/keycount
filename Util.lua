@@ -441,3 +441,21 @@ KeyCount.util.checkIfPrintMessage = function(freq)
     local sessions = KeyCountDB.sessions or 0
     return math.fmod(sessions, _freq) == 0
 end
+
+---Shows a popup ingame with the latest update message. Will trigger if the message being sent in KeyCount:InitSelf() is different from the message stored in the DB.
+---@param msg string
+KeyCount.util.checkUpdateMessage = function(msg)
+    local oldMessage = KeyCountDB.updateMessage or ""
+    if msg == oldMessage then return end
+    StaticPopupDialogs["updateMessage"] = {
+        text = string.format("%sKeyCount has been updated!\n--\n%s%s\n%s--|r", KeyCount.defaults.colors.chatAnnounce, KeyCount.defaults.colors.chatSuccess, msg, KeyCount.defaults.colors.chatAnnounce),
+        button1 = OKAY,
+        OnAccept = function()
+            KeyCountDB.updateMessage = msg
+            Log(string.format('updateMessage set to: %s', msg))
+        end,
+        timeout = 0,
+        whileDead = true,
+    }
+    StaticPopup_Show("updateMessage")
+end

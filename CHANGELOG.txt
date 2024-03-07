@@ -1,4 +1,7 @@
-- Removed number of system messages
+- Added update message on first login after update
+- Fixed RISE and FALL dungeon shortcuts
+- Added option to automatically fail a run (set it to abandoned) by typing /kcfail
+
 
 v0.6 changelog:
 - Added player search function
@@ -15,3 +18,4 @@ v0.6 changelog:
 - Removed all data view
 - Added checkboxes to improve filtering 
 - Only season checkbox is enabled for player lookup
+- Removed number of system messages
