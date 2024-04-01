@@ -201,10 +201,10 @@ end
 ---Checks name-realm first, then name only and returns the first match if there are multiple.
 ---@param playername string Name to search
 ---@param db table Database containing all player data
----@return table|nil T All data for a single player
+---@return table|nil data, string name All data for a single player, The actual player name
 local function searchPlayerGetData(playername, db)
-    if not db or next(db) == 0 then return nil end
-    if not playername or #playername == 0 then return nil end
+    if not db or next(db) == 0 then return nil, '' end
+    if not playername or #playername == 0 then return nil, '' end
     if type(playername) ~= "string" then
         playername = tostring(playername)
     end
@@ -216,16 +216,19 @@ local function searchPlayerGetData(playername, db)
 
     -- First pass: name-realm
     for p, data in pairs(db) do
-        if string.lower(p) == _playername then return data end
+        if string.lower(p) == _playername then return data, p end
     end
     -- Data is not found, using name only
     _playername = KeyCount.util.splitString(_playername)
+    --@debug@
+    Log('Attempting to search without realm: '.. _playername)
+    --@end-debug@
     for p, data in pairs(db) do
-        p = KeyCount.util.splitString(p)
-        if string.lower(p) == _playername then return data end
+        local name = KeyCount.util.splitString(p)
+        if string.lower(name) == _playername then return data, p end
     end
     printf(string.format("No data found for player %s!", playername), KeyCount.defaults.colors.chatWarning, true)
-    return nil
+    return nil, playername
 end
 --#endregion
 
@@ -293,6 +296,16 @@ local function filterDungeonsSuccessRatePrint(key, value)
     if dungeons then KeyCount.utilstats.printDungeonSuccessRate(dungeons) end
 end
 
+local function filterPlayersSearchPlayerPrint(value)
+    local players = KeyCount:GetStoredPlayers()
+    if not players then return end
+    local player, name = searchPlayerGetData(value, players)
+    if not player then return end
+    printf(string.format("Stats for %s:", KeyCount.util.titleCase(name)))
+    local summary = KeyCount.utilstats.getPlayerDataSummary(player)
+    if summary then KeyCount.utilstats.printPlayerSuccessRate(summary) end
+end
+
 ---Apply any filter to a set of data
 ---@param data table
 ---@param key string | nil
@@ -313,6 +326,7 @@ KeyCount.filterfunctions.searchplayer = filterPlayersSearchPlayer
 KeyCount.filterfunctions.print.list = filterDungeonsListPrint
 KeyCount.filterfunctions.print.filter = filterDungeonsFilterPrint
 KeyCount.filterfunctions.print.rate = filterDungeonsSuccessRatePrint
+KeyCount.filterfunctions.print.searchplayer = filterPlayersSearchPlayerPrint
 
 KeyCount.filterkeys = {
     ["alldata"] = { key = "alldata", value = "", name = "All data" },

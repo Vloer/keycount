@@ -209,9 +209,10 @@ KeyCount.util.calculateMedian = function(list)
 
     local length = #list
     local middleIndex = math.floor(length / 2)
-
     if length % 2 == 1 then
         return list[middleIndex + 1]
+    elseif length == 0 then
+        return 0
     else
         return math.ceil((list[middleIndex] + list[middleIndex + 1]) / 2)
     end
@@ -448,7 +449,8 @@ KeyCount.util.checkUpdateMessage = function(msg)
     local oldMessage = KeyCountDB.updateMessage or ""
     if msg == oldMessage then return end
     StaticPopupDialogs["updateMessage"] = {
-        text = string.format("%sKeyCount has been updated!\n--\n%s%s\n%s--|r", KeyCount.defaults.colors.chatAnnounce, KeyCount.defaults.colors.chatSuccess, msg, KeyCount.defaults.colors.chatAnnounce),
+        text = string.format("%sKeyCount has been updated!\n--\n%s%s\n%s--|r", KeyCount.defaults.colors.chatAnnounce,
+            KeyCount.defaults.colors.chatSuccess, msg, KeyCount.defaults.colors.chatAnnounce),
         button1 = OKAY,
         OnAccept = function()
             KeyCountDB.updateMessage = msg
@@ -458,4 +460,45 @@ KeyCount.util.checkUpdateMessage = function(msg)
         whileDead = true,
     }
     StaticPopup_Show("updateMessage")
+end
+
+---Converts all words in string to Titlecase
+---@param s string|nil
+KeyCount.util.titleCase = function(s)
+    if not s then
+        return ''
+    end
+    if type(s) ~= "string" then
+        s = tostring(s)
+    end
+    s = string.lower(s)
+    local titleCase = s:gsub("(%l)(%w*)", function(a, b)
+        return string.upper(a) .. b
+    end)
+    return titleCase
+end
+
+---Get an index between 1 and 5 to use to decide which color to choose. Defaults to 1.
+---@param num number Any number, usually success rate
+---@return number index
+KeyCount.util.getColorIdx = function(num)
+    if type(num) ~= "number" then return 1 end
+    local idx = math.floor(num / 20) + 1
+    if idx > 5 then
+        return 5
+    end
+    return idx
+end
+
+---Get the color format for a given level
+---@param level number
+---@return table T {color: contains rgb(a) values, hex: hex string that can be used in string formatting}
+KeyCount.util.getLevelColor = function(level)
+    local idx = 0
+    if type(level) == "number" and level > 0 then
+        idx = math.floor(level / 5) + 1
+    end
+    local r, g, b, hex = GetItemQualityColor(idx)
+    local color = { r = r, g = g, b = b, a = 1 }
+    return { color = color, hex = hex }
 end

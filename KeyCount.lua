@@ -9,6 +9,8 @@ KeyCount.utilstats = {}
 KeyCount.details = {}
 KeyCount.formatdata = {}
 
+-- TODO player lookup shows wrong best dungeon - includes untimed dungeons
+
 -- Event behaviour
 function KeyCount:OnEvent(event, ...)
     self[event](self, event, ...)
@@ -113,7 +115,7 @@ function KeyCount:InitSelf()
         Log("Setting current dungeon to value from DB")
         table.copy(self.current, KeyCountDB.current)
     end
-    local updateMessage = "·You can now type /kcfail to manually set an active run to 'abandoned'·\n·Included this update message·\n·Fixed FALL and RISE shortcuts in dungeon lookup·"
+    local updateMessage = "·Quickly look up a player's stats with the /kcp command!\nUsage: /kcp PlayerName·"
     C_Timer.After(15, function() KeyCount.util.checkUpdateMessage(updateMessage) end)
     Log("Finished InitSelf")
 end

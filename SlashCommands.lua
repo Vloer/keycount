@@ -36,6 +36,17 @@ function SlashCmdList.KEYCOUNT_FILTER(msg)
     KeyCount.filterfunctions.print.filter(key, value)
 end
 
+SLASH_KEYCOUNT_PLAYERSUCCESSRATE1 = "/kcplayer"
+SLASH_KEYCOUNT_PLAYERSUCCESSRATE2 = "/kcp"
+function SlashCmdList.KEYCOUNT_PLAYERSUCCESSRATE(msg)
+    print(" ")
+    local player = msg or ''
+    if #player == 0 then
+        printf('Invalid data supplied for player search!', KeyCount.defaults.colors.chatWarning, true)
+    end
+    KeyCount.filterfunctions.print.searchplayer(player)
+end
+
 SLASH_KEYCOUNT_SUCCESSRATE1 = "/kcrate"
 SLASH_KEYCOUNT_SUCCESSRATE2 = "/kcr"
 function SlashCmdList.KEYCOUNT_SUCCESSRATE(msg)
@@ -84,6 +95,9 @@ function SlashCmdList.KEYCOUNT_HELP(msg)
     printf(" ")
     printf(" [/kcfail]")
     printf(" Set the current dungeon run to 'abandoned'.", KeyCount.defaults.colors.chatWarning)
+    printf(" ")
+    printf(" [/kcp]  |  [/kcplayer]")
+    printf(" Quickly look up a player's stat summary.", KeyCount.defaults.colors.chatWarning)
 end
 
 SLASH_KEYCOUNT_FILTEROPTS1 = "/kcfilteroptions"
@@ -93,13 +107,17 @@ function SlashCmdList.KEYCOUNT_FILTEROPTS(msg)
     print(" ")
     printf("===FILTER OPTIONS===", nil, true)
     printf(" Format is /kcf or /kcrate <key> <value>")
-    print(string.format("%s [<nothing>] %sDungeon name or abbreviation (ex: RLP)|r", KeyCount.defaults.colors.chatAnnounce,
+    print(string.format("%s [<nothing>] %sDungeon name or abbreviation (ex: RLP)|r",
+        KeyCount.defaults.colors.chatAnnounce,
         KeyCount.defaults.colors.chatWarning))
     print(string.format("%s [season] %sMythic+ season (ex: Dragonflight-1)|r", KeyCount.defaults.colors.chatAnnounce,
         KeyCount.defaults.colors.chatWarning))
-    print(string.format("%s [player] %sPlayer name|r", KeyCount.defaults.colors.chatAnnounce, KeyCount.defaults.colors.chatWarning))
-    print(string.format("%s [name] %sDungeon name|r", KeyCount.defaults.colors.chatAnnounce, KeyCount.defaults.colors.chatWarning))
-    print(string.format("%s [dungeon] %sDungeon name|r", KeyCount.defaults.colors.chatAnnounce, KeyCount.defaults.colors.chatWarning))
+    print(string.format("%s [player] %sPlayer name|r", KeyCount.defaults.colors.chatAnnounce,
+        KeyCount.defaults.colors.chatWarning))
+    print(string.format("%s [name] %sDungeon name|r", KeyCount.defaults.colors.chatAnnounce,
+        KeyCount.defaults.colors.chatWarning))
+    print(string.format("%s [dungeon] %sDungeon name|r", KeyCount.defaults.colors.chatAnnounce,
+        KeyCount.defaults.colors.chatWarning))
     print(string.format("%s [completed] %sOnly completed runs|r", KeyCount.defaults.colors.chatAnnounce,
         KeyCount.defaults.colors.chatWarning))
     print(string.format("%s [inTime] %sOnly runs completed in time|r", KeyCount.defaults.colors.chatAnnounce,
@@ -116,7 +134,8 @@ function SlashCmdList.KEYCOUNT_FILTEROPTS(msg)
         KeyCount.defaults.colors.chatWarning))
     print(string.format("%s [affix] %sSpecific affix (comma = AND, | = OR)|r", KeyCount.defaults.colors.chatAnnounce,
         KeyCount.defaults.colors.chatWarning))
-    print(string.format("%s Example: %saffix raging,quaking = raging AND quaking|r", KeyCount.defaults.colors.chatAnnounce,
+    print(string.format("%s Example: %saffix raging,quaking = raging AND quaking|r",
+        KeyCount.defaults.colors.chatAnnounce,
         KeyCount.defaults.colors.chatWarning))
     print(string.format("%s Example: %saffix volcanic||necrotic = either volcanic or necrotic or both|r",
         KeyCount.defaults.colors.chatAnnounce, KeyCount.defaults.colors.chatWarning))

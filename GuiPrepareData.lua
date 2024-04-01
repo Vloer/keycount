@@ -46,16 +46,6 @@ local function getPlayerRoleAndColor(class, role)
     return { color = color, hex = colorHex, roleIcon = roleIcon }
 end
 
-local function getLevelColor(level)
-    local idx = 0
-    if level > 0 then
-        idx = math.floor(level / 5) + 1
-    end
-    local r, g, b, hex = GetItemQualityColor(idx)
-    local color = { r = r, g = g, b = b, a = 1 }
-    return { color = color, hex = hex }
-end
-
 ---Finds correct color for dungeon result
 ---@param dungeon table|number Dungeon data or result integer
 ---@return table T Table containing color specifications
@@ -195,7 +185,7 @@ local function prepareRowList(dungeon)
     --@end-debug@
     table.insert(row, { value = playerString, color = p.color })
     table.insert(row, { value = name })
-    table.insert(row, { value = level, color = getLevelColor(level).color })
+    table.insert(row, { value = level, color = KeyCount.util.getLevelColor(level).color })
     table.insert(row, { value = result, color = rgb(resultColor.rgb) })
     table.insert(row, { value = deaths, color = getDeathsColor(deaths) })
     table.insert(row, { value = time })
@@ -226,8 +216,8 @@ local function prepareRowRate(dungeon)
     table.insert(row, { value = intime })
     table.insert(row, { value = outtime })
     table.insert(row, { value = abandoned })
-    table.insert(row, { value = best, color = getLevelColor(best).color })
-    table.insert(row, { value = median, color = getLevelColor(median).color })
+    table.insert(row, { value = best, color = KeyCount.util.getLevelColor(best).color })
+    table.insert(row, { value = median, color = KeyCount.util.getLevelColor(median).color })
     table.insert(row, { value = dps })
     return { cols = row }
 end
@@ -263,8 +253,8 @@ local function prepareRowGrouped(player)
     table.insert(row, { value = intime })
     table.insert(row, { value = outtime })
     table.insert(row, { value = abandoned })
-    table.insert(row, { value = best, color = getLevelColor(best).color })
-    table.insert(row, { value = median, color = getLevelColor(median).color })
+    table.insert(row, { value = best, color = KeyCount.util.getLevelColor(best).color })
+    table.insert(row, { value = median, color = KeyCount.util.getLevelColor(median).color })
     table.insert(row, { value = dps })
     table.insert(row, { value = hps })
     return { cols = row }
@@ -303,8 +293,8 @@ local function prepareRowSearchPlayerPlayer(player)
     table.insert(row, { value = intime })
     table.insert(row, { value = outtime })
     table.insert(row, { value = abandoned })
-    table.insert(row, { value = best, color = getLevelColor(best).color })
-    table.insert(row, { value = median, color = getLevelColor(median).color })
+    table.insert(row, { value = best, color = KeyCount.util.getLevelColor(best).color })
+    table.insert(row, { value = median, color = KeyCount.util.getLevelColor(median).color })
     table.insert(row, { value = maxdps })
     table.insert(row, { value = maxhps })
     return { cols = row }
@@ -322,7 +312,7 @@ local function prepareRowSearchPlayerDungeon(dungeon)
     local name = formatDungeonName(dungeon.name)
     local nameWithRole = getRoleIcon(dungeon.role) .. name
     local level = dungeon.level
-    local levelColor = getLevelColor(level).color
+    local levelColor = KeyCount.util.getLevelColor(level).color
     local result = dungeon.resultstring
     local resultColor = rgb(getResultColor(dungeon.result).rgb)
     local time = dungeon.time

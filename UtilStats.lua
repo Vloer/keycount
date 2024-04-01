@@ -16,6 +16,7 @@ local function getBestKeyTimed(dungeons)
 end
 
 ---Helper function to re-order a table containing player data to the format {ROLE1 = {season1, season2, ...}, ROLE2 = {season1, season2, ...}}
+---Expects data to be in the format {SEASON1 = {role1, role2, ...}, SEASON2 = {role1, role2, ...}, ...}
 ---This function is used in KeyCount.utilstats.getPlayerData
 ---@param playerdata table Player data object
 ---@param role string Role to filter. Defaults to all
@@ -57,9 +58,11 @@ end
 ---Helper function to combine player data per role over multiple seasons.
 ---This function is used in KeyCount.utilstats.getPlayerData
 ---@param roledata table Data table containing all player data seperated by role
+---@param skipDungeons boolean|nil Only returns player data. Defaults to returning player and dungeon dat
 ---@return table|nil, table|nil T [1] Combined table [2] List of all dungeons for the player. Nil for both if invalid data object supplied
-local function combinePlayerDataPerRole(roledata)
+local function combinePlayerDataPerRole(roledata, skipDungeons)
     if not roledata or next(roledata) == nil then return nil, nil end
+    if not skipDungeons then skipDungeons = false end
     local dungeonsAll = {}
     local combinedData = {}
     for roleName, roleData in pairs(roledata) do
@@ -83,14 +86,16 @@ local function combinePlayerDataPerRole(roledata)
             maxdps = KeyCount.util.getMax(maxdps, seasonEntry["maxdps"])
             maxhps = KeyCount.util.getMax(maxhps, seasonEntry["maxhps"])
             best = KeyCount.util.getMax(best, seasonEntry["best"])
-            for _, dung in ipairs(seasonEntry["dungeons"]) do
-                local uuid = dung["uuid"]
-                dung.role = roleName
-                if not KeyCount.util.listContainsItem(uuid, dungeon_ids_seen) then
-                    table.insert(dungeon_ids_seen, uuid)
-                    table.insert(dungeonsForRole, dung)
-                    table.insert(dungeonsAll, dung)
-                    table.insert(median, dung["level"])
+            if not skipDungeons then
+                for _, dung in ipairs(seasonEntry["dungeons"]) do
+                    local uuid = dung["uuid"]
+                    dung.role = roleName
+                    if not KeyCount.util.listContainsItem(uuid, dungeon_ids_seen) then
+                        table.insert(dungeon_ids_seen, uuid)
+                        table.insert(dungeonsForRole, dung)
+                        table.insert(dungeonsAll, dung)
+                        table.insert(median, dung["level"])
+                    end
                 end
             end
             if #playerClass == 0 then playerClass = seasonEntry["class"] or "" end
@@ -140,10 +145,33 @@ end
 
 function KeyCount.utilstats.printDungeonSuccessRate(tbl)
     for _, d in ipairs(tbl) do
-        local colorIdx = math.floor(d.successRate / 20) + 1
+        local colorIdx = KeyCount.util.getColorIdx(d.successRate) 
         local fmt = KeyCount.defaults.colors.rating[colorIdx].chat
         printf(string.format("%s: %.2f%% [%d/%d]", d.name, d.successRate, d.intime, d.intime + d.outtime + d.abandoned),
             fmt)
+    end
+end
+
+---Prints player success rate per role to the chat window
+---@param summary table All data (retrieved from getPlayerDataSummary)
+function KeyCount.utilstats.printPlayerSuccessRate(summary)
+    for _, data in ipairs(summary) do
+        local colorIdx = KeyCount.util.getColorIdx(data['rate'])
+        local fmt = KeyCount.defaults.colors.rating[colorIdx].chat
+        local level = data['best'] or 0
+        local levelColor = KeyCount.util.getLevelColor(level).hex
+        local levelString = string.format('|c%s%d', levelColor, level)
+        local intime = string.format('%s%d', KeyCount.defaults.colors.rating[5].chat, data['intime'])
+        local outtime = string.format('%s%d', KeyCount.defaults.colors.rating[3].chat, data['outtime'])
+        local abandoned = string.format('%s%d', KeyCount.defaults.colors.rating[1].chat, data['abandoned'])
+        printf(string.format("%s: %.2f%% [%s|r/%s|r/%s|r]. Best: %s",
+            data['role'],
+            data['rate'],
+            intime,
+            outtime,
+            abandoned,
+            levelString
+        ), fmt)
     end
 end
 
@@ -432,6 +460,52 @@ function KeyCount.utilstats.getPlayerData(player, season, role)
     if next(_r1) == nil then _r1 = nil end
     if next(_r2) == nil then _r2 = nil end
     return _r1, _r2
+end
+
+---Retrieve the data summary of a single player. Returns counts and success rate per role
+---@param player table All player data
+---@param season string|nil Defaults to all roles
+---@param role string|nil Defaults to all seasons
+---@return table|nil T One row per role, nil if something went wrong
+function KeyCount.utilstats.getPlayerDataSummary(player, season, role)
+    --@debug@
+    Log('Starting getPlayerDataSummary')
+    --@end-debug@
+    local _season = season or "all"
+    local _role = KeyCount.util.formatRole(role) or "all"
+    local dataByRole = getPlayerDataRoleSeason(player, _role, _season) or {}
+    local playerdata = combinePlayerDataPerRole(dataByRole, true)
+    local finalDataOverview = {}
+    if playerdata then
+        for playerRole, roleData in pairs(playerdata) do
+            Log('Staring role ' .. playerRole)
+            KeyCount.util.printTableOnSameLine(roleData, 'roledata')
+            local successRate = KeyCount.util.calculateSuccessRate(roleData.intime, roleData.outtime, roleData.abandoned)
+            table.insert(finalDataOverview,
+                {
+                    name = roleData.name,
+                    amount = roleData.totalEntries,
+                    rate = successRate,
+                    intime = roleData.intime,
+                    outtime = roleData.outtime,
+                    abandoned = roleData.abandoned,
+                    best = roleData.best,
+                    median = roleData.median,
+                    maxdps = roleData.maxdps,
+                    maxhps = roleData.maxhps,
+                    role = playerRole,
+                    class = roleData.class,
+                }
+            )
+        end
+    end
+    for _, row in ipairs(finalDataOverview) do
+        KeyCount.util.printTableOnSameLine(row, 'finaldata')
+    end
+    if next(finalDataOverview) ~= nil then
+        return finalDataOverview
+    end
+    return nil
 end
 
 ---Helper function to calculate wilson confidence score

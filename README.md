@@ -47,7 +47,6 @@ This addon is still in beta development, but you can already download it from cu
     - Add 'notes' column to gui (with mouseover or side scrollable)
 
 ## Data filter
-    - Add filter for current week
     - Enable multiple filters
 
 ## Player score
@@ -57,3 +56,4 @@ This addon is still in beta development, but you can already download it from cu
 
 ## Bugs
     - Going out of dungeon disables the call to SetKeyFailed if someone leaves the group while you are outside (sometimes?)
+    - Best key is not being stored correctly on player data (should only show completed key)
