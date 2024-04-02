@@ -115,7 +115,7 @@ function KeyCount:InitSelf()
         Log("Setting current dungeon to value from DB")
         table.copy(self.current, KeyCountDB.current)
     end
-    local updateMessage = "·Quickly look up a player's stats with the /kcp command!\nUsage: /kcp PlayerName·"
+    local updateMessage = "·Quickly look up a player's stats with the /kcp or /kcs command!\n/kcp displays all dungeon runs, /kcs only displays a summary.\nUsage: /kcp PlayerName·"
     C_Timer.After(15, function() KeyCount.util.checkUpdateMessage(updateMessage) end)
     Log("Finished InitSelf")
 end

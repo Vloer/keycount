@@ -121,24 +121,28 @@ end
 
 function KeyCount.utilstats.printDungeons(dungeons)
     for i, dungeon in ipairs(dungeons) do
-        if dungeon.keyresult.value == KeyCount.defaults.keyresult.intime.value then
+        local result = dungeon.keyresult or dungeon.result
+        local keydata = dungeon.keydata or {}
+        local level = keydata.level or dungeon.level
+        local deaths = dungeon.totalDeaths or dungeon.deaths
+        if result == KeyCount.defaults.keyresult.intime.value then
             printf(
                 string.format("[%s] %d: %s %s %d (%d deaths)", dungeon.player, i, KeyCount.defaults.keyresult.intime
                     .name,
                     dungeon.name,
-                    dungeon.keydata.level, dungeon.totalDeaths), KeyCount.defaults.colors.rating[5].chat)
-        elseif dungeon.keyresult.value == KeyCount.defaults.keyresult.outtime.value then
+                    level, deaths), KeyCount.defaults.colors.rating[5].chat)
+        elseif result == KeyCount.defaults.keyresult.outtime.value then
             printf(
                 string.format("[%s] %d: %s %s %d (%d deaths)", dungeon.player, i,
                     KeyCount.defaults.keyresult.outtime.name,
                     dungeon.name,
-                    dungeon.keydata.level, dungeon.totalDeaths), KeyCount.defaults.colors.rating[3].chat)
-        elseif dungeon.keyresult.value == KeyCount.defaults.keyresult.abandoned.value then
+                    level, deaths), KeyCount.defaults.colors.rating[3].chat)
+        elseif result == KeyCount.defaults.keyresult.abandoned.value then
             printf(
                 string.format("[%s] %d: %s %s %d (%d deaths)", dungeon.player, i,
                     KeyCount.defaults.keyresult.abandoned.name,
                     dungeon.name,
-                    dungeon.keydata.level, dungeon.totalDeaths), KeyCount.defaults.colors.rating[1].chat)
+                    level, deaths), KeyCount.defaults.colors.rating[1].chat)
         end
     end
 end
@@ -153,8 +157,39 @@ function KeyCount.utilstats.printDungeonSuccessRate(tbl)
 end
 
 ---Prints player success rate per role to the chat window
+---@param player string Player name
 ---@param summary table All data (retrieved from getPlayerDataSummary)
-function KeyCount.utilstats.printPlayerSuccessRate(summary)
+---@param onlySummary boolean Only print the summary
+---@param dungeons table|nil All dungeons
+function KeyCount.utilstats.printPlayerSuccessRate(player, summary, onlySummary, dungeons)
+    onlySummary = onlySummary or false
+    if dungeons and next(dungeons) ~= nil and not onlySummary then
+        for i, dungeon in ipairs(dungeons) do
+            local result = dungeon.result
+            local level = dungeon.level
+            local deaths = dungeon.deaths
+            if result == KeyCount.defaults.keyresult.intime.value then
+                printf(
+                    string.format("[%s] %d: %s %s %d (%d deaths)", player, i, KeyCount.defaults.keyresult.intime
+                        .name,
+                        dungeon.name,
+                        level, deaths), KeyCount.defaults.colors.rating[5].chat)
+            elseif result == KeyCount.defaults.keyresult.outtime.value then
+                printf(
+                    string.format("[%s] %d: %s %s %d (%d deaths)", player, i,
+                        KeyCount.defaults.keyresult.outtime.name,
+                        dungeon.name,
+                        level, deaths), KeyCount.defaults.colors.rating[3].chat)
+            elseif result == KeyCount.defaults.keyresult.abandoned.value then
+                printf(
+                    string.format("[%s] %d: %s %s %d (%d deaths)", player, i,
+                        KeyCount.defaults.keyresult.abandoned.name,
+                        dungeon.name,
+                        level, deaths), KeyCount.defaults.colors.rating[1].chat)
+            end
+        end
+        printf('Summary: ')
+    end
     for _, data in ipairs(summary) do
         local colorIdx = KeyCount.util.getColorIdx(data['rate'])
         local fmt = KeyCount.defaults.colors.rating[colorIdx].chat
@@ -478,8 +513,6 @@ function KeyCount.utilstats.getPlayerDataSummary(player, season, role)
     local finalDataOverview = {}
     if playerdata then
         for playerRole, roleData in pairs(playerdata) do
-            Log('Staring role ' .. playerRole)
-            KeyCount.util.printTableOnSameLine(roleData, 'roledata')
             local successRate = KeyCount.util.calculateSuccessRate(roleData.intime, roleData.outtime, roleData.abandoned)
             table.insert(finalDataOverview,
                 {
@@ -498,9 +531,6 @@ function KeyCount.utilstats.getPlayerDataSummary(player, season, role)
                 }
             )
         end
-    end
-    for _, row in ipairs(finalDataOverview) do
-        KeyCount.util.printTableOnSameLine(row, 'finaldata')
     end
     if next(finalDataOverview) ~= nil then
         return finalDataOverview

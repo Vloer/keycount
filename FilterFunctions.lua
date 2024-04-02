@@ -296,14 +296,16 @@ local function filterDungeonsSuccessRatePrint(key, value)
     if dungeons then KeyCount.utilstats.printDungeonSuccessRate(dungeons) end
 end
 
-local function filterPlayersSearchPlayerPrint(value)
+local function filterPlayersSearchPlayerPrint(value, onlySummary)
+    onlySummary = onlySummary or false
     local players = KeyCount:GetStoredPlayers()
     if not players then return end
     local player, name = searchPlayerGetData(value, players)
     if not player then return end
     printf(string.format("Stats for %s:", KeyCount.util.titleCase(name)))
-    local summary = KeyCount.utilstats.getPlayerDataSummary(player)
-    if summary then KeyCount.utilstats.printPlayerSuccessRate(summary) end
+    -- local summary = KeyCount.utilstats.getPlayerDataSummary(player)
+    local summary, dungeons = KeyCount.utilstats.getPlayerData(player)
+    if summary then KeyCount.utilstats.printPlayerSuccessRate(name, summary, onlySummary, dungeons) end
 end
 
 ---Apply any filter to a set of data

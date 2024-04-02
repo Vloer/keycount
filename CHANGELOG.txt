@@ -1,4 +1,5 @@
-- Added /kcp option to quickly search a single player's stats summary
+- Added /kcs (/kcsummary) option to quickly search a single player's stats summary
+- Added /kcp (/kcplayer) to display all dungeon runs with a specific player
 
 v0.7 changelog:
 - Only season checkbox is enabled for player lookup
