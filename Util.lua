@@ -188,6 +188,7 @@ end
 ---@param table table Data
 ---@param name string|nil Name of the table or function to display
 KeyCount.util.printTableOnSameLine = function(table, name)
+    if type(table) ~= 'table' then return end
     local output = ""
     name = name or ""
     for key, value in pairs(table) do
@@ -198,7 +199,7 @@ KeyCount.util.printTableOnSameLine = function(table, name)
         end
     end
     output = output:sub(1, -3)
-    Log(string.format("%s: %s", name, output))
+    Log(string.format("%s: %s", tostring(name), tostring(output)))
 end
 
 -- Calculate the median of a list of values

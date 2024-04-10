@@ -201,8 +201,10 @@ end
 ---Checks name-realm first, then name only and returns the first match if there are multiple.
 ---@param playername string Name to search
 ---@param db table Database containing all player data
+---@param printOutput boolean|nil
 ---@return table|nil data, string name All data for a single player, The actual player name
-local function searchPlayerGetData(playername, db)
+function KeyCount.filterfunctions.searchPlayerGetData(playername, db, printOutput)
+    printOutput = printOutput or false
     if not db or next(db) == 0 then return nil, '' end
     if not playername or #playername == 0 then return nil, '' end
     if type(playername) ~= "string" then
@@ -221,13 +223,15 @@ local function searchPlayerGetData(playername, db)
     -- Data is not found, using name only
     _playername = KeyCount.util.splitString(_playername)
     --@debug@
-    Log('Attempting to search without realm: '.. _playername)
+    Log('Attempting to search without realm: ' .. _playername)
     --@end-debug@
     for p, data in pairs(db) do
         local name = KeyCount.util.splitString(p)
         if string.lower(name) == _playername then return data, p end
     end
-    printf(string.format("No data found for player %s!", playername), KeyCount.defaults.colors.chatWarning, true)
+    if printOutput then
+        printf(string.format("No data found for player %s!", playername), KeyCount.defaults.colors.chatWarning, true)
+    end
     return nil, playername
 end
 --#endregion
@@ -264,7 +268,7 @@ end
 local function filterPlayersSearchPlayer(key, value, season)
     local players = KeyCount:GetStoredPlayers()
     if not players then return end
-    local player = searchPlayerGetData(value, players)
+    local player = KeyCount.filterfunctions.searchPlayerGetData(value, players)
     if not player then return end
     local playerdata, dungeondata = KeyCount.utilstats.getPlayerData(player, season)
     return playerdata, dungeondata
@@ -304,7 +308,7 @@ local function filterPlayersSearchPlayerPrint(value, onlySummary)
     onlySummary = onlySummary or false
     local players = KeyCount:GetStoredPlayers()
     if not players then return end
-    local player, name = searchPlayerGetData(value, players)
+    local player, name = KeyCount.filterfunctions.searchPlayerGetData(value, players)
     if not player then return nil end
     printf(string.format("Stats for %s:", KeyCount.util.titleCase(name)))
     -- local summary = KeyCount.utilstats.getPlayerDataSummary(player)
@@ -323,6 +327,7 @@ function KeyCount.filterfunctions.applyfilter(data, key, value)
     value = value or ""
     return filterData(data, key, value)
 end
+
 --#endregion
 
 KeyCount.filterfunctions.list = filterDungeons

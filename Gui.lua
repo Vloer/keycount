@@ -353,8 +353,6 @@ end
 
 ---@param gui GUI
 local function setFilterKeyValue(gui)
-    print(string.format('filterkeytext %s filterkeyvalue %s value %s', tostring(gui.filter.name),
-        tostring(gui.filter.key), tostring(gui.value)))
     gui.widgets.filterKey:SetText(gui.filter.name)
     gui.widgets.filterKey:SetValue(gui.filter.key)
     gui.widgets.filterValue:SetText(gui.value)
