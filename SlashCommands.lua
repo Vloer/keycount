@@ -13,8 +13,7 @@ function SlashCmdList.KEYCOUNT()
 
         KeyCount.gui = GUI
     end
-    KeyCount.gui.frame = KeyCount.gui:ConstructGUI()
-    KeyCount.gui.frame:Show()
+    KeyCount.gui:Show()
 end
 
 SLASH_KEYCOUNT_LIST1 = "/keycount_list"

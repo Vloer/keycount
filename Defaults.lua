@@ -134,6 +134,7 @@ local defaults = {
     dungeonPlusChar = "*",
     expansion = "Dragonflight",
     seasons = seasons,
+    maxlevel = 70,
     databaseCheckMessageFreq = 10,
 }
 

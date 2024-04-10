@@ -296,16 +296,21 @@ local function filterDungeonsSuccessRatePrint(key, value)
     if dungeons then KeyCount.utilstats.printDungeonSuccessRate(dungeons) end
 end
 
+---Search player data for specific player to print to chat
+---@param value string Player name
+---@param onlySummary boolean Only print summary
+---@return table|nil T Table if data is found, nil otherwise
 local function filterPlayersSearchPlayerPrint(value, onlySummary)
     onlySummary = onlySummary or false
     local players = KeyCount:GetStoredPlayers()
     if not players then return end
     local player, name = searchPlayerGetData(value, players)
-    if not player then return end
+    if not player then return nil end
     printf(string.format("Stats for %s:", KeyCount.util.titleCase(name)))
     -- local summary = KeyCount.utilstats.getPlayerDataSummary(player)
     local summary, dungeons = KeyCount.utilstats.getPlayerData(player)
     if summary then KeyCount.utilstats.printPlayerSuccessRate(name, summary, onlySummary, dungeons) end
+    return summary
 end
 
 ---Apply any filter to a set of data
@@ -330,23 +335,24 @@ KeyCount.filterfunctions.print.filter = filterDungeonsFilterPrint
 KeyCount.filterfunctions.print.rate = filterDungeonsSuccessRatePrint
 KeyCount.filterfunctions.print.searchplayer = filterPlayersSearchPlayerPrint
 
+---@class FilterKeys
 KeyCount.filterkeys = {
-    ["alldata"] = { key = "alldata", value = "", name = "All data" },
-    ["player"] = { key = "player", value = "player", name = "Player" },
-    ["currentweek"] = { key = "currentweek", value = "currentweek", name = "Current Week" },
-    ["dungeon"] = { key = "dungeon", value = "name", name = "Dungeon" },
-    ["role"] = { key = "role", value = "role", name = "Player role" },
-    ["season"] = { key = "season", value = "season", name = "Season" },
-    ["completed"] = { key = "completed", value = "completed", name = "Completed" },
-    ["intime"] = { key = "intime", value = "intime", name = "Completed in time" },
-    ["outtime"] = { key = "outtime", value = "outtime", name = "Completed out of time" },
-    ["abandoned"] = { key = "abandoned", value = "abandoned", name = "Abandoned" },
-    ["level"] = { key = "level", value = "level", name = "Minimum key level" },
-    ["time"] = { key = "time", value = "time", name = "Time" },
-    ["deathsgt"] = { key = "deathsgt", value = "deathsgt", name = "Minimum amount of deaths" },
-    ["deathslt"] = { key = "deathslt", value = "deathslt", name = "Maximum amount of deaths" },
-    ["date"] = { key = "date", value = "date", name = "Date" },
-    ["affix"] = { key = "affix", value = "affix", name = "Affixes" },
+    alldata = { key = "alldata", value = "", name = "All data" },
+    player = { key = "player", value = "player", name = "Player" },
+    currentweek = { key = "currentweek", value = "currentweek", name = "Current Week" },
+    dungeon = { key = "dungeon", value = "name", name = "Dungeon" },
+    role = { key = "role", value = "role", name = "Player role" },
+    season = { key = "season", value = "season", name = "Season" },
+    completed = { key = "completed", value = "completed", name = "Completed" },
+    intime = { key = "intime", value = "intime", name = "Completed in time" },
+    outtime = { key = "outtime", value = "outtime", name = "Completed out of time" },
+    abandoned = { key = "abandoned", value = "abandoned", name = "Abandoned" },
+    level = { key = "level", value = "level", name = "Minimum key level" },
+    time = { key = "time", value = "time", name = "Time" },
+    deathsgt = { key = "deathsgt", value = "deathsgt", name = "Minimum amount of deaths" },
+    deathslt = { key = "deathslt", value = "deathslt", name = "Maximum amount of deaths" },
+    date = { key = "date", value = "date", name = "Date" },
+    affix = { key = "affix", value = "affix", name = "Affixes" },
 }
 
 KeyCount.filterorder = {

@@ -7,6 +7,7 @@
 Libs\LibStub\LibStub.lua
 Libs\AceGUI-3.0\AceGUI-3.0.xml
 Libs\lib-st\lib-st.xml
+Libs\LibDropDownExtension-1.0\LibDropDownExtension.lua
 
 KeyCount.lua
 Defaults.lua
@@ -18,5 +19,6 @@ Gui.lua
 GuiPrepareData.lua
 ExportData.lua
 FormatDataStorage.lua
+Dropdown.lua
 
 External\Details.lua

@@ -186,7 +186,7 @@ end
 
 -- Print all key,value pairs to the log
 ---@param table table Data
----@param name string Name of the table or function to display
+---@param name string|nil Name of the table or function to display
 KeyCount.util.printTableOnSameLine = function(table, name)
     local output = ""
     name = name or ""
@@ -198,7 +198,7 @@ KeyCount.util.printTableOnSameLine = function(table, name)
         end
     end
     output = output:sub(1, -3)
-    --Log(string.format("%s: %s", name, output))
+    Log(string.format("%s: %s", name, output))
 end
 
 -- Calculate the median of a list of values
