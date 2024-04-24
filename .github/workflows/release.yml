@@ -1,0 +1,33 @@
+name: Draft New Release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Create Release Alpha
+        id: create-release-alpha
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v0.8.2-alpha
+          release_name: v0.8.2-alpha
+          draft: false
+
+      - name: Create Release Beta
+        id: create-release-beta
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v0.8.2-beta
+          release_name: v0.8.2-beta
+          draft: true
