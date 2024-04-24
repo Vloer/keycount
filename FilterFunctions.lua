@@ -130,7 +130,7 @@ local function cleanFilterArgs(key, value)
     elseif _key == "season" then
         if #value == 0 then
             value = KeyCount.defaults.dungeonDefault.season
-        elseif KeyCount.util.listContainsItem(value, { "1", "2", "3" }) then
+        elseif KeyCount.util.listContainsItem(value, { "1", "2", "3", "4" }) then
             local seasonNumber = tonumber(value)
             local expansion = KeyCount.defaults.expansion
             value = KeyCount.defaults.seasons[expansion][seasonNumber] or KeyCount.defaults.dungeonDefault.season

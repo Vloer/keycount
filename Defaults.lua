@@ -17,7 +17,8 @@ local seasons = {
     Dragonflight = {
         "Dragonflight-1",
         "Dragonflight-2",
-        "Dragonflight-3"
+        "Dragonflight-3",
+        "Dragonflight-4"
     }
 }
 local keyresult = {
@@ -76,7 +77,7 @@ local defaults = {
     dungeonDefault = {
         uuid = "",
         version = 3,
-        season = seasons.Dragonflight[3],
+        season = seasons.Dragonflight[4],
         player = "",
         name = "",
         party = {},

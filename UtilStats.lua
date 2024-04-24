@@ -499,8 +499,8 @@ end
 
 ---Retrieve the data summary of a single player. Returns counts and success rate per role
 ---@param player table All player data
----@param season string|nil Defaults to all roles
----@param role string|nil Defaults to all seasons
+---@param season string|nil Defaults to all seasons
+---@param role string|nil Defaults to all roles
 ---@return table|nil T One row per role, nil if something went wrong
 function KeyCount.utilstats.getPlayerDataSummary(player, season, role)
     --@debug@

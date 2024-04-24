@@ -115,7 +115,7 @@ function KeyCount:InitSelf()
         Log("Setting current dungeon to value from DB")
         table.copy(self.current, KeyCountDB.current)
     end
-    local updateMessage = "·Added KeyCount player stats lookup on right-click!·"
+    local updateMessage = "·Defaulting to showing data for all seasons during the first week of the new season·"
     C_Timer.After(15, function() KeyCount.util.checkUpdateMessage(updateMessage) end)
     Log("Finished InitSelf")
 end

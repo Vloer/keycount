@@ -551,7 +551,7 @@ GUI.defaults = {
         },
         currentseason = {
             text = "Current season",
-            state = true,
+            state = false,
             filter = {
                 key = "season",
                 value = KeyCount.defaults.dungeonDefault.season
