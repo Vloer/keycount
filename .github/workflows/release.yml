@@ -18,8 +18,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: vv0.8.2-alpha
-          release_name: vv0.8.2-alpha
+          tag_name: vv.8.3-alpha
+          release_name: v0.8.3-alpha
           draft: false
 
       - name: Create Release Beta
@@ -28,6 +28,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: vv0.8.2-beta
-          release_name: vv0.8.2-beta
+          tag_name: v0.8.3-beta
+          release_name: v0.8.3-beta
           draft: true
