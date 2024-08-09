@@ -18,7 +18,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: vv.8.3-alpha
+          tag_name: v0.8.3-alpha
           release_name: v0.8.3-alpha
           draft: false
 
