@@ -3,6 +3,10 @@ local d = {}
 d.ignoreDungeonAbilities = {
     "Soul Thorns",
     "Sanguine Ichor",
+    "Neltharus Weapons",
+    "Rose of the Vale",
+    "Anti-Magic Bomb",
+    "Wand of Negation"
 }
 
 function d:setDetailsAttribute()
