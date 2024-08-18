@@ -1,18 +1,27 @@
-local DDE = LibStub and LibStub:GetLibrary("LibDropDownExtension-1.0", true)
-local localVars = {}
-local dropdownOptions = {
-    {
-        text = 'KeyCount stats',
-        func = function()
-            local name = localVars['name'] or ''
-            local data = localVars['data'] or nil
-            if data then
-                KeyCount.filterfunctions.print.searchplayer(data, true)
-                GUI:Init()
-                KeyCount.gui:Show(KeyCount.gui.views.searchplayer.type, KeyCount.filterkeys.player.key, name)
-            end
-        end
-    }
+---@class ModifyMenuCallbackContextData
+---@field public fromPlayerFrame? boolean
+---@field public isMobile? boolean
+---@field public isRafRecruit? boolean
+---@field public name? string
+---@field public server? string
+---@field public unit? string
+---@field public which? string
+---@field public accountInfo? any
+---@field public playerLocation? any
+---@field public friendsList? number
+
+---@class ModifyMenuCallbackRootDescription
+---@field public tag string
+---@field public contextData? ModifyMenuCallbackContextData
+---@field public CreateDivider fun(self: ModifyMenuCallbackRootDescription)
+---@field public CreateTitle fun(self: ModifyMenuCallbackRootDescription, text: string)
+---@field public CreateButton fun(self: ModifyMenuCallbackRootDescription, text: string, callback: fun())
+
+local ModifyMenu = Menu and Menu.ModifyMenu
+local addonName = "KeyCount"
+local validMenuTags = {
+    "MENU_LFG_FRAME_SEARCH_ENTRY",
+    "MENU_LFG_FRAME_MEMBER_APPLY",
 }
 local validTypes = {
     ARENAENEMY = true,
@@ -33,121 +42,202 @@ local validTypes = {
     TARGET = true,
     WORLD_STATE_SCORE = true,
 }
+-- TODO move to textutils
+local availablePlayerRoleAndIcon = {
+    DAMAGER = '|TInterface\\AddOns\\KeyCount_dev\\Icons\\roles:14:14:0:0:64:64:0:18:0:18|t',
+    HEALER = '|TInterface\\AddOns\\KeyCount_dev\\Icons\\roles:14:14:0:0:64:64:19:37:0:18|t',
+    TANK = '|TInterface\\AddOns\\KeyCount_dev\\Icons\\roles:14:14:0:0:64:64:38:56:0:18|t'
+}
 
-local function getNameForBNetFriend(bnetIDAccount)
-    if not C_BattleNet then return nil end
-    local index = _G.BNGetFriendIndex(bnetIDAccount)
-    if not index then return nil end
-    for i = 1, C_BattleNet.GetFriendNumGameAccounts(index), 1 do
-        local accountInfo = C_BattleNet.GetFriendGameAccountInfo(index, i)
-        if accountInfo and accountInfo.clientProgram == BNET_CLIENT_WOW and (not accountInfo.wowProjectID or accountInfo.wowProjectID ~= WOW_PROJECT_CLASSIC) then
-            if accountInfo.realmName then
-                accountInfo.characterName = accountInfo.characterName .. "-" .. accountInfo.realmName:gsub("%s+", "")
-            end
-            return accountInfo.characterName
-        end
+---@param rootDescription ModifyMenuCallbackRootDescription
+---@param contextData ModifyMenuCallbackContextData
+local function isValidMenu(rootDescription, contextData)
+    if not contextData then
+        return KeyCount.util.listContainsItem(rootDescription.tag, validMenuTags)
     end
-    return nil
+    local which = contextData.which
+    return which and validTypes[which]
 end
 
-local function getNameFromPlayerLink(playerLink)
-    if not LinkUtil or not ExtractLinkData then return nil end
-    local linkString, linkText = LinkUtil.SplitLink(playerLink)
-    local linkType, linkData = ExtractLinkData(linkString)
-    if linkType == "player" then
-        return linkData
-    elseif linkType == "BNplayer" then
-        local _, bnetIDAccount = strsplit(":", linkData)
-        if bnetIDAccount then
-            local bnetID = tonumber(bnetIDAccount)
-            if bnetID then
-                return getNameForBNetFriend(bnetID)
-            end
-        end
+---@return string? name, nil, number? level
+local function getLFGListInfo(owner)
+    local resultID = owner.resultID
+    if resultID then
+        local searchResultInfo = C_LFGList.GetSearchResultInfo(resultID)
+        local name = searchResultInfo.leaderName
+        return name, nil, nil
     end
+    local memberIdx = owner.memberIdx
+    if not memberIdx then
+        return
+    end
+    local parent = owner:GetParent()
+    if not parent then
+        return
+    end
+    local applicantID = parent.applicantID
+    if not applicantID then
+        return
+    end
+    local fullName, _, _, level = C_LFGList.GetApplicantMemberInfo(applicantID, memberIdx)
+    return fullName, nil, level
 end
 
-local function isValidDropdown(dropdown)
-    local validLFG = (dropdown == LFGListFrameDropDown)
-    local validType = (type(dropdown.which) == "string" and validTypes[dropdown.which])
-    return (validLFG or validType)
-end
-
-local function getPlayerName(dropdown)
-    local unit = dropdown.unit
-    local tempName, tempRealm = dropdown.name, dropdown.server
-    local menuList = dropdown.menuList
+---@param owner any
+---@param rootDescription ModifyMenuCallbackRootDescription
+---@param contextData ModifyMenuCallbackContextData
+---@return string? name, string? realm, number? level, string? unit
+local function getPlayerNameForMenu(owner, rootDescription, contextData)
     local name, realm, level
-    local bnetIDAccount = dropdown.bnetIDAccount
-    local quickJoinMember = dropdown.quickJoinMember
-    local quickJoinButton = dropdown.quickJoinButton
-    -- unit
-    if not name and UnitExists(unit) and UnitIsPlayer(unit) then
+    if not contextData then
+        if KeyCount.util.listContainsItem(rootDescription.tag, validMenuTags) then
+            return getLFGListInfo(owner)
+        end
+        return
+    end
+    local unit = contextData.unit
+    if unit and UnitExists(unit) then
         name = GetUnitName(unit, true)
         level = UnitLevel(unit)
+        --@debug
+        Log(string.format('getPlayerNameForMenu found in unit: %s %s %s', tostring(name), tostring(realm),
+            tostring(level)))
+        --@end-debug@
+        return name, realm, level, unit
     end
-    -- bnet
-    if not name and bnetIDAccount then
-        name, realm, level = getNameForBNetFriend(bnetIDAccount)
+    local accountInfo = contextData.accountInfo
+    if accountInfo then
+        local gameAccountInfo = accountInfo.gameAccountInfo
+        name = gameAccountInfo.characterName
+        realm = gameAccountInfo.realmName
+        level = gameAccountInfo.characterLevel
+        --@debug
+        Log(string.format('getPlayerNameForMenu found in accountInfo: %s %s %s', tostring(name), tostring(realm),
+            tostring(level)))
+        --@end-debug@
+        return name, realm, level, unit
     end
-    -- lfg
-    if not name and menuList then
-        for _, whisperButton in ipairs(menuList) do
-            if whisperButton and (whisperButton.text == WHISPER_LEADER or whisperButton.text == WHISPER) then
-                if whisperButton.arg1 then
-                    return whisperButton.arg1
-                end
-            end
-        end
-    end
-    -- quickjoin
-    if not name and (quickJoinButton or quickJoinMember) then
-        local memberInfo = quickJoinMember or quickJoinButton.Members[1]
-        if memberInfo.playerLink then
-            name, realm, level = getNameFromPlayerLink(memberInfo.playerLink)
-        end
-    end
-    if not name and tempName then
-        name = tempName
-    end
-    if not realm and tempRealm then
-        realm = tempRealm
-    end
-    return name, realm, level
-end
-
---the callback function for when the dropdown event occurs
-local function OnEvent(dropdown, event, options, level, data)
-    if event == "OnShow" then
-        if not isValidDropdown(dropdown) then return end
-        local name, realm, plevel, unit = getPlayerName(dropdown)
-        localVars['name'] = name
-        localVars['realm'] = realm
-        localVars['level'] = plevel
-        localVars['data'] = nil
-        if not name or not level or (level and level==KeyCount.defaults.maxlevel) then
-            return
-        end
-        local players = KeyCount:GetStoredPlayers()
-        if players then
-            local player, dataName = KeyCount.filterfunctions.searchPlayerGetData(name, players, false)
-            if player then
-                localVars['data'] = dataName
-            end
-        end
-        if not localVars['data'] then return end
-        if not options[1] then
-            for i = 1, #dropdownOptions do
-                local option = dropdownOptions[i]
-                options[i] = option
-            end
-        end
-        return true
-    elseif event == "OnHide" then
-        _G.wipe(options)
-        return true
+    name = contextData.name
+    realm = contextData.server
+    if name then
+        --@debug
+        Log(string.format('getPlayerNameForMenu found in contextData: %s %s', name, realm))
+        --@end-debug@
+        return name, realm
     end
 end
 
--- registers callback
-DDE:RegisterEvent("OnShow OnHide", OnEvent, 1)
+-- TODO move to textutils
+local function getSuccessRateColor(rate)
+    local idx
+    if rate == 0 then
+        idx = 1
+    elseif rate == 100 then
+        idx = 5
+    else
+        idx = math.floor(rate / 20) + 1
+        if idx <= 0 then idx = 1 end
+    end
+    return KeyCount.defaults.colors.rating[idx].chat
+end
+
+local function getStringForRole(data)
+    local score = KeyCount.utilstats.calculatePlayerScore(data.intime, data.outtime, data.abandoned, data.median,
+        data.best)
+    local scoreString = string.format("%.0f", score)
+    local color = getSuccessRateColor(score)
+    return string.format('%s%s%s', color, scoreString, KeyCount.defaults.colors.reset)
+end
+
+local function getStringForRoleWithText(data)
+    local score = KeyCount.utilstats.calculatePlayerScore(data.intime, data.outtime, data.abandoned, data.median,
+        data.best)
+    local scoreString = string.format('Timed %s of %s', data.intime, data.totalEntries)
+    local color = getSuccessRateColor(score)
+    return string.format('%s%s%s', color, scoreString, KeyCount.defaults.colors.reset)
+end
+
+local function getPlayerDropdownString(data)
+    local playerRoleString = ''
+    for role, icon in pairs(availablePlayerRoleAndIcon) do
+        local _data = data[role] or nil
+        if _data then
+            playerRoleString = playerRoleString .. icon .. getStringForRole(_data)
+        end
+    end
+    return playerRoleString
+end
+
+---@param rootDescription ModifyMenuCallbackRootDescription
+---@param data table
+---@param name string Player name
+---@param buttonPerRole boolean?
+local function createButton(rootDescription, data, name, buttonPerRole)
+    if not buttonPerRole then
+        buttonPerRole = false
+    end
+    if buttonPerRole then
+        for role, icon in pairs(availablePlayerRoleAndIcon) do
+            local _data = data[role] or nil
+            if _data then
+                local roleString = icon .. getStringForRoleWithText(_data)
+                rootDescription:CreateButton(roleString, function()
+                    GUI:Init()
+                    KeyCount.gui:Show(KeyCount.gui.views.searchplayer.type, KeyCount.filterkeys.player.key, name)
+                end)
+            end
+        end
+    else
+        local dropdownString = getPlayerDropdownString(data)
+        rootDescription:CreateButton(dropdownString, function()
+            GUI:Init()
+            KeyCount.gui:Show(KeyCount.gui.views.searchplayer.type, KeyCount.filterkeys.player.key, name)
+        end)
+    end
+end
+
+---@param rootDescription ModifyMenuCallbackRootDescription
+local function createButtonNoData(rootDescription)
+    rootDescription:CreateButton('No data available', function() end)
+end
+
+---@param owner any
+---@param rootDescription ModifyMenuCallbackRootDescription
+---@param contextData ModifyMenuCallbackContextData
+local function OnMenuShow(owner, rootDescription, contextData)
+    if not isValidMenu(rootDescription, contextData) then
+        return
+    end
+    local name, realm, level, unit = getPlayerNameForMenu(owner, rootDescription, contextData)
+    if not name then
+        return
+    end
+    rootDescription:CreateDivider()
+    rootDescription:CreateTitle(addonName)
+    local players = KeyCount:GetStoredPlayers()
+    if not players then
+        return
+    end
+    local _data, playerName = KeyCount.filterfunctions.searchPlayerGetData(name, players)
+    if not _data then
+        createButtonNoData(rootDescription)
+        return
+    end
+    local dataSeason = _data[KeyCount.defaults.season]
+    if not dataSeason then
+        return
+    end
+    createButton(rootDescription, dataSeason, name, true)
+end
+
+if ModifyMenu then
+    for name, enabled in pairs(validTypes) do
+        if enabled then
+            local tag = string.format('MENU_UNIT_%s', name)
+            ModifyMenu(tag, OnMenuShow)
+        end
+    end
+    for _, tag in ipairs(validMenuTags) do
+        ModifyMenu(tag, GenerateClosure(OnMenuShow))
+    end
+end

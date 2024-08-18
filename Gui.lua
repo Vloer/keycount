@@ -551,7 +551,7 @@ GUI.defaults = {
         },
         currentseason = {
             text = "Current season",
-            state = false,
+            state = true,
             filter = {
                 key = "season",
                 value = KeyCount.defaults.dungeonDefault.season
@@ -674,9 +674,9 @@ function GUI:Init()
 end
 
 ---Open GUI
----@param view string|nil
----@param filter string|nil
----@param value string|nil
+---@param view string?
+---@param filter string?
+---@param value string?
 function GUI:Show(view, filter, value)
     self:Init()
     if self.visible and not view and not filter then
@@ -688,6 +688,7 @@ function GUI:Show(view, filter, value)
         value = value or ''
         self.filter = KeyCount.filterkeys[filter]
         self.value = value
+        self.checkboxes.currentseason:SetValue(true)
         setFilterKeyValue(self)
         fillTable(self)
     end
