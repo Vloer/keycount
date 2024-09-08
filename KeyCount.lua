@@ -10,9 +10,9 @@ KeyCount.details = {}
 KeyCount.formatdata = {}
 
 -- TODO player lookup shows wrong best dungeon - includes untimed dungeons
--- TODO fix 'no dungeons matched your filter critera' message showing up twice on checkboxes
 -- TODO dungeons are being stored as previous season
 -- TODO make dataclasses
+-- TODO player lookup still shows all dungeons regardless of season
 
 -- Event behaviour
 function KeyCount:OnEvent(event, ...)
@@ -118,7 +118,7 @@ function KeyCount:InitSelf()
         Log("Setting current dungeon to value from DB")
         table.copy(self.current, KeyCountDB.current)
     end
-    local updateMessage = "·Re-implemented dropdown menu. Click on item in dropdown to open GUI for player·"
+    local updateMessage = "·Updated for The War Within. For the first few weeks the dropdown will also show the previous season·\n·Added improved 'Season' dropdown in the UI·"
     C_Timer.After(15, function() KeyCount.util.checkUpdateMessage(updateMessage) end)
     Log("Finished InitSelf")
 end

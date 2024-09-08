@@ -185,7 +185,7 @@ KeyCount.util.addSymbol = function(text, amount, symbol, color)
 end
 
 -- Print all key,value pairs to the log
----@param table table Data
+---@param table table|any Data
 ---@param name string|nil Name of the table or function to display
 KeyCount.util.printTableOnSameLine = function(table, name)
     if type(table) ~= 'table' then return end

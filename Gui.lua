@@ -20,6 +20,7 @@ function GUI:ConstructGUI()
     self.dungeons = {}
     self.data = {}
     self.dataPlayers = {}
+    self.selectedSeasons = {}
     self.dataLoadedForExport = false
     self.key = ""
     self.value = ""
@@ -71,6 +72,18 @@ function GUI:ConstructGUI()
     self.widgets.filterValue:SetWidth(self.defaults.widgets.filterValue.width)
     self.widgets.filterValue:SetDisabled(true)
 
+    self.widgets.season = AceGUI:Create("Dropdown")
+    self.widgets.season:SetLabel(self.defaults.widgets.season.text)
+    self.widgets.season:SetWidth(self.defaults.widgets.season.width)
+    self.widgets.season:SetList(self.defaults.seasonsDropdown, self.defaults.seasonsViewOrder)
+    self.widgets.season:SetMultiselect(true)
+    self.widgets.season:SetItemValue(KeyCount.defaults.dungeonDefault.season, true)
+    self.selectedSeasons[KeyCount.defaults.dungeonDefault.season] = true
+    if KeyCount.defaults.enablePreviousSeason.enabled then
+        self.widgets.season:SetItemValue(KeyCount.defaults.enablePreviousSeason.season, true)
+        self.selectedSeasons[KeyCount.defaults.enablePreviousSeason.season] = true
+    end
+
     self.checkboxes.character = AceGUI:Create("CheckBox")
     self.checkboxes.character:SetLabel(self.defaults.checkboxes.character.text)
     self.checkboxes.character:SetValue(self.defaults.checkboxes.character.state)
@@ -78,10 +91,6 @@ function GUI:ConstructGUI()
     self.checkboxes.currentweek = AceGUI:Create("CheckBox")
     self.checkboxes.currentweek:SetLabel(self.defaults.checkboxes.currentweek.text)
     self.checkboxes.currentweek:SetValue(self.defaults.checkboxes.currentweek.state)
-
-    self.checkboxes.currentseason = AceGUI:Create("CheckBox")
-    self.checkboxes.currentseason:SetLabel(self.defaults.checkboxes.currentseason.text)
-    self.checkboxes.currentseason:SetValue(self.defaults.checkboxes.currentseason.state)
 
     self.checkboxes.intime = AceGUI:Create("CheckBox")
     self.checkboxes.intime:SetLabel(self.defaults.checkboxes.intime.text)
@@ -95,6 +104,7 @@ function GUI:ConstructGUI()
     self.buttons.exportdata:SetText(self.defaults.buttons.exportdata.text)
     self.buttons.exportdata:SetWidth(self.defaults.buttons.exportdata.width)
 
+    frame:AddChild(self.widgets.season)
     frame:AddChild(self.widgets.view)
     frame:AddChild(self.widgets.filterKey)
     frame:AddChild(self.widgets.filterValue)
@@ -102,7 +112,6 @@ function GUI:ConstructGUI()
     frame:AddChild(self.buttons.exportdata)
     frame:AddChild(self.checkboxes.character)
     frame:AddChild(self.checkboxes.currentweek)
-    frame:AddChild(self.checkboxes.currentseason)
     frame:AddChild(self.checkboxes.intime)
     --#endregion
 
@@ -298,6 +307,20 @@ function GUI:ConstructGUI()
     self.widgets.filterValue:SetCallback("OnEnterPressed", function(widget, event, text)
         self:c_FilterValue(text)
     end)
+    self.widgets.season:SetCallback("OnValueChanged", function(widget, event, key, checked)
+        if key == "All" and checked then
+            for k, v in pairs(self.selectedSeasons) do
+                if k ~= "All" then
+                    self.selectedSeasons[k] = false
+                    self.widgets.season:SetItemValue(k, false)
+                end
+            end
+        else
+            self.selectedSeasons["All"] = false
+            self.widgets.season:SetItemValue("All", false)
+        end
+        self.selectedSeasons[key] = checked
+    end)
     self.buttons.showdata:SetCallback("OnClick", function(...)
         self:c_ShowData()
     end)
@@ -308,9 +331,6 @@ function GUI:ConstructGUI()
         self:c_ShowData()
     end)
     self.checkboxes.currentweek:SetCallback("OnValueChanged", function(...)
-        self:c_ShowData()
-    end)
-    self.checkboxes.currentseason:SetCallback("OnValueChanged", function(...)
         self:c_ShowData()
     end)
     self.checkboxes.intime:SetCallback("OnValueChanged", function(...)
@@ -387,7 +407,6 @@ end
 local function disableCheckboxes(gui, flag)
     gui.checkboxes.character:SetDisabled(flag)
     gui.checkboxes.currentweek:SetDisabled(flag)
-    --gui.checkboxes.currentseason:SetDisabled(flag)
     gui.checkboxes.intime:SetDisabled(flag)
 end
 
@@ -427,10 +446,9 @@ end
 local function applyCheckboxFilters(gui, data)
     local self = gui
     --@debug@
-    Log(string.format("Checkboxes: character %s, week %s, season %s, intime %s",
+    Log(string.format("Checkboxes: character %s, week %s, intime %s",
         tostring(self.checkboxes.character:GetValue()),
         tostring(self.checkboxes.currentweek:GetValue()),
-        tostring(self.checkboxes.currentseason:GetValue()),
         tostring(self.checkboxes.intime:GetValue())
     ))
     --@end-debug@
@@ -439,9 +457,6 @@ local function applyCheckboxFilters(gui, data)
     end
     if self.checkboxes.currentweek:GetValue() then
         data = KeyCount.filterfunctions.applyfilter(data, self.defaults.checkboxes.currentweek.filter.key) or {}
-    end
-    if self.checkboxes.currentseason:GetValue() then
-        data = KeyCount.filterfunctions.applyfilter(data, self.defaults.checkboxes.currentseason.filter.key) or {}
     end
     if self.checkboxes.intime:GetValue() then
         data = KeyCount.filterfunctions.applyfilter(data, self.defaults.checkboxes.intime.filter.key) or {}
@@ -457,30 +472,32 @@ local function fillTable(gui)
     Log(string.format("fillTable: Calling filterfunc with [%s] [%s] [%s]", self.view, tostring(self.key),
         tostring(self.value)))
     --@end-debug@
-    local dungeons = KeyCount:GetStoredDungeons() or {}
-    if self.view == self.views.searchplayer.type then
-        -- Check if current season checkbox is enabled
-        local currentSeasonOrAll
-        if self.checkboxes.currentseason:GetValue() then
-            currentSeasonOrAll = KeyCount.defaults.dungeonDefault.season
-        end
-        self.players, self.dungeons = KeyCount.filterfunctions[self.view](self.key, self.value, currentSeasonOrAll)
-        if self.players and self.dungeons then
-            self.dataPlayers, self.data = KeyCount.guipreparedata[self.view](self.players, self.dungeons)
-        else
-            self.dataPlayers = {}
-            self.data = {}
-        end
+    local dungeons = KeyCount:GetStoredDungeons()
+    KeyCount.util.printTableOnSameLine(self.selectedSeasons, "Currently selected seasons")
+    dungeons = KeyCount.filterfunctions.selectSeasonData(self.selectedSeasons, dungeons)
+    if not dungeons then
+        self.dungeons = {}
+        self.data = {}
     else
-        dungeons = applyCheckboxFilters(self, dungeons)
-        self.dungeons = KeyCount.filterfunctions[self.view](dungeons, self.key, self.value)
-        if not self.dungeons then
-            self.data = {}
+        if self.view == self.views.searchplayer.type then
+            self.players, self.dungeons = KeyCount.filterfunctions[self.view](self.key, self.value)
+            if self.players and self.dungeons then
+                self.dataPlayers, self.data = KeyCount.guipreparedata[self.view](self.players, self.dungeons)
+            else
+                self.dataPlayers = {}
+                self.data = {}
+            end
         else
-            --@debug@
-            Log(string.format("Found %s dungeons after applying checkboxes", #self.dungeons))
-            --@end-debug@
-            self.data = KeyCount.guipreparedata[self.view](self.dungeons)
+            dungeons = applyCheckboxFilters(self, dungeons)
+            self.dungeons = KeyCount.filterfunctions[self.view](dungeons, self.key, self.value)
+            if not self.dungeons then
+                self.data = {}
+            else
+                --@debug@
+                Log(string.format("Found %s dungeons after applying checkboxes", #self.dungeons))
+                --@end-debug@
+                self.data = KeyCount.guipreparedata[self.view](self.dungeons)
+            end
         end
     end
     --@debug@
@@ -520,6 +537,10 @@ GUI.defaults = {
         filterValue = {
             text = "Filter value",
             width = 200
+        },
+        season = {
+            text = "Season",
+            width = 140
         }
     },
     buttons = {
@@ -580,6 +601,22 @@ GUI.defaults = {
     },
     view = "filter",
     viewOrder = { "filter", "rate", "grouped", "searchplayer" },
+    seasonsDropdown = {
+        All = "All",
+        [KeyCount.defaults.seasons.TheWarWithin[1]] = KeyCount.defaults.seasons.TheWarWithin[1],
+        [KeyCount.defaults.seasons.Dragonflight[4]] = KeyCount.defaults.seasons.Dragonflight[4],
+        [KeyCount.defaults.seasons.Dragonflight[3]] = KeyCount.defaults.seasons.Dragonflight[3],
+        [KeyCount.defaults.seasons.Dragonflight[2]] = KeyCount.defaults.seasons.Dragonflight[2],
+        [KeyCount.defaults.seasons.Dragonflight[1]] = KeyCount.defaults.seasons.Dragonflight[1]
+    },
+    seasonsViewOrder = {
+        "All",
+        KeyCount.defaults.seasons.TheWarWithin[1],
+        KeyCount.defaults.seasons.Dragonflight[4],
+        KeyCount.defaults.seasons.Dragonflight[3],
+        KeyCount.defaults.seasons.Dragonflight[2],
+        KeyCount.defaults.seasons.Dragonflight[1]
+    }
 }
 
 ---@class Views
@@ -688,7 +725,6 @@ function GUI:Show(view, filter, value)
         value = value or ''
         self.filter = KeyCount.filterkeys[filter]
         self.value = value
-        self.checkboxes.currentseason:SetValue(true)
         setFilterKeyValue(self)
         fillTable(self)
     end

@@ -209,9 +209,11 @@ local function OnMenuShow(owner, rootDescription, contextData)
         return
     end
     local name, realm, level, unit = getPlayerNameForMenu(owner, rootDescription, contextData)
+    local dataSeason, dataPreviousSeason
     if not name then
         return
     end
+    name = 'Stoel'
     rootDescription:CreateDivider()
     rootDescription:CreateTitle(addonName)
     local players = KeyCount:GetStoredPlayers()
@@ -223,11 +225,20 @@ local function OnMenuShow(owner, rootDescription, contextData)
         createButtonNoData(rootDescription)
         return
     end
-    local dataSeason = _data[KeyCount.defaults.season]
-    if not dataSeason then
-        return
+    dataSeason = _data[KeyCount.defaults.season]
+    if dataSeason then
+        createButton(rootDescription, dataSeason, name, true)
+    else
+        createButtonNoData(rootDescription)
     end
-    createButton(rootDescription, dataSeason, name, true)
+    if KeyCount.defaults.enablePreviousSeason.enabled then
+        dataPreviousSeason = _data[KeyCount.defaults.enablePreviousSeason.season]
+    end
+    if dataPreviousSeason then
+        rootDescription:CreateDivider()
+        rootDescription:CreateTitle(string.format('%s season %s', addonName, KeyCount.defaults.enablePreviousSeason.season))
+        createButton(rootDescription, dataPreviousSeason, name, true)
+    end
 end
 
 if ModifyMenu then

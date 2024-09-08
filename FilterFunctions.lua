@@ -6,9 +6,10 @@ local function noResult(key, value)
     key = key or ""
     value = value or ""
     if #key > 0 then
-        msg = string.format(" [%s: '%s']", key, value)
+        msg = string.format(" [%s: '%s']", key, tostring(value))
     end
     printf(string.format("No dungeons matched your filter criteria%s!", msg), KeyCount.defaults.colors.chatWarning, true)
+    Log(string.format("No dungeons matched your filter criteria%s!", msg))
     return nil
 end
 
@@ -78,7 +79,11 @@ local filterConditions = {
         return string.lower(role) == string.lower(value)
     end,
     ["season"] = function(entry, value)
-        return entry.season == value
+        if type(value) == "string" then
+            return entry.season == value
+        elseif type(value) == "table" then
+            return KeyCount.util.listContainsItem(entry.season, value)
+        end
     end,
 }
 
@@ -116,7 +121,7 @@ local function cleanFilterArgs(key, value)
         value = tonumber(value) or 0
     elseif _key == "affix" and #value ~= 0 then
         local values = {}
-        Log(string.format("FILTER <%s> <%s>", key, tostring(value)))
+        Log(string.format("FILTER affix <%s> <%s>", key, tostring(value)))
         if string.find(value, ',') then
             values[1] = "AND"
         else
@@ -127,14 +132,26 @@ local function cleanFilterArgs(key, value)
             table.insert(values, string.lower(substring))
         end
         value = values
-    elseif _key == "season" then
-        if #value == 0 then
-            value = KeyCount.defaults.dungeonDefault.season
-        elseif KeyCount.util.listContainsItem(value, { "1", "2", "3", "4" }) then
-            local seasonNumber = tonumber(value)
-            local expansion = KeyCount.defaults.expansion
-            value = KeyCount.defaults.seasons[expansion][seasonNumber] or KeyCount.defaults.dungeonDefault.season
-        end
+        -- elseif _key == "season" then
+        --     Log('Enter cleanfilterargs season key ' .. tostring(type(value)))
+        --     if type(value) == "table" then
+        --         Log('Reached type value in cleanfilterargs')
+        --         local newValue = {}
+        --         for season, enabled in pairs(value) do
+        --             if enabled then
+        --                 table.insert(newValue, season)
+        --             end
+        --         end
+        --         value = newValue
+        --     elseif #value == 0 then
+        --         value = KeyCount.defaults.dungeonDefault.season
+
+        --     elseif KeyCount.util.listContainsItem(value, { "1", "2", "3", "4" }) then
+        --         local seasonNumber = tonumber(value)
+        --         local expansion = KeyCount.defaults.expansion
+        --         value = KeyCount.defaults.seasons[expansion][seasonNumber] or KeyCount.defaults.dungeonDefault.season
+
+        --     end
     elseif _key == "date" then
         if #value == 0 then
             value = KeyCount.util.getDateToday()
@@ -161,6 +178,57 @@ local function cleanFilterArgs(key, value)
     return _key, value
 end
 
+---Selects specified season data
+---@param seasons table Specified seasons {[season(str)]: enabled(bool)}
+---@param dungeons table? All dungeons to filter from
+---@return table?
+function KeyCount.filterfunctions.selectSeasonData(seasons, dungeons)
+    Log(string.format('Enter select seasons: %d dungeons', #(dungeons or {})))
+    local selectedAllSeasons = false
+
+    -- Check if dungeons is empty or nil
+    if not dungeons or next(dungeons) == nil then
+        Log('No dungeons to filter')
+        return nil
+    end
+
+    local selectedSeasons = {}
+    for season, isSelected in pairs(seasons) do
+        if isSelected then
+            Log('Selecting ' .. season)
+            if season == 'All' then
+                selectedAllSeasons = true
+            end
+            table.insert(selectedSeasons, season)
+        end
+    end
+
+    -- -- If no seasons specified, use current season
+    -- if not selectedSeasons or next(selectedSeasons) == nil then
+    --     selectedSeasons = { [KeyCount.defaults.dungeonDefault.season] = true }
+    --     Log('No seasons specified, using default: ' .. KeyCount.defaults.dungeonDefault.season)
+    -- end
+
+    local result = {}
+    for _, dungeon in ipairs(dungeons) do
+        if seasons[dungeon.season] or selectedAllSeasons then
+            table.insert(result, dungeon)
+        end
+    end
+
+    Log(string.format('Select seasons found %d dungeons', #result))
+    if #result == 0 then
+        if next(selectedSeasons) == nil then
+            printf('No dungeons found because no seasons are selected!', KeyCount.defaults.colors.chatWarning, true)
+        else
+            printf(string.format('No dungeons found for selected seasons: %s', table.concat(selectedSeasons, ', ')),
+                KeyCount.defaults.colors.chatWarning, true)
+        end
+        return nil
+    end
+    return result
+end
+
 ---Filters data based on key (filter type) and value (filter value)
 ---@param tbl table
 ---@param key string
@@ -168,8 +236,13 @@ end
 ---@return table | nil
 local function filterData(tbl, key, value)
     local result = {}
+    --@debug@
+    KeyCount.util.printTableOnSameLine(value, "Enter filterdata:")
+    --@end-debug@
     local _key, _value = cleanFilterArgs(key, value)
-    if not _key and not _value then return noResult() end
+    if not _key and not _value then
+        return noResult()
+    end
     --@debug@
     Log(string.format("FilterData: cleaned args are [%s] [%s]", _key, tostring(_value)))
     --@end-debug@
@@ -194,6 +267,9 @@ local function filterData(tbl, key, value)
     if #result == 0 then
         return noResult(key, value)
     end
+    --@debug@
+    Log(string.format("FilterData returned %d results", #result))
+    --@end-debug@
     return result
 end
 
@@ -234,6 +310,7 @@ function KeyCount.filterfunctions.searchPlayerGetData(playername, db, printOutpu
     end
     return nil, playername
 end
+
 --#endregion
 
 --#region Filter functions
@@ -347,7 +424,6 @@ KeyCount.filterkeys = {
     currentweek = { key = "currentweek", value = "currentweek", name = "Current Week" },
     dungeon = { key = "dungeon", value = "name", name = "Dungeon" },
     role = { key = "role", value = "role", name = "Player role" },
-    season = { key = "season", value = "season", name = "Season" },
     completed = { key = "completed", value = "completed", name = "Completed" },
     intime = { key = "intime", value = "intime", name = "Completed in time" },
     outtime = { key = "outtime", value = "outtime", name = "Completed out of time" },
@@ -361,7 +437,7 @@ KeyCount.filterkeys = {
 }
 
 KeyCount.filterorder = {
-    "alldata", "player", "dungeon", "role", "season",
+    "alldata", "player", "dungeon", "role",
     "completed", "outtime", "abandoned", "level",
     "time", "deathsgt", "deathslt", "date", "affix"
 }
