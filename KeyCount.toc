@@ -3,6 +3,8 @@
 ## Author: Vloer
 ## Version: @project-version@
 ## SavedVariables: KeyCountDB
+## X-Wago-ID:qGYM4zGg
+## X-Curse-Project-ID: 858122
 
 Libs\LibStub\LibStub.lua
 Libs\AceGUI-3.0\AceGUI-3.0.xml

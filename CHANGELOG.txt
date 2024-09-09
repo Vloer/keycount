@@ -1,13 +1,6 @@
-Re-implemented dropdown menu for new patch changes
+- Updated for The War Within with new dungeon settings
+- Implemented season dropdown in the GUI
+- Added BigWigs packager
 
-v0.7 changelog:
-- Only season checkbox is enabled for player lookup
-- Removed all data view
-- Added checkboxes to improve filtering 
-- Removed number of system messages
-- Added update message on first login after update
-- Fixed RISE and FALL dungeon shortcuts
-- Added option to automatically fail a run (set it to abandoned) by typing /kcfail
-- Added /kcs (/kcsummary) option to quickly search a single player's stats summary
-- Added /kcp (/kcplayer) to display all dungeon runs with a specific player
-- Added dropdown option to look at a player's stats
+v0.8 changelog:
+- Re-implemented dropdown menu for new patch changes

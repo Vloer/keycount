@@ -13,6 +13,7 @@ KeyCount.formatdata = {}
 -- TODO dungeons are being stored as previous season
 -- TODO make dataclasses
 -- TODO player lookup still shows all dungeons regardless of season
+-- TODO add data broker support (titan panel/bazooka)
 
 -- Event behaviour
 function KeyCount:OnEvent(event, ...)
