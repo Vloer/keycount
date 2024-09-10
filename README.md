@@ -1,17 +1,19 @@
 # Description
 We all know that feeling.
-"Man I've been depleting Halls of Infusion left and right, must have been over 10 attempts today!"
+"Man I've been depleting Siege of Boralus left and right, must have been over 10 attempts today!"
 
-KeyCount ... counts ... your mythic+ keys. This addon saves data about all your runs, including untimed and abandoned ones, so you'll finally know just how many times you attempted to time Brackenhide Hollow.
+KeyCount stores data for all of your mythic+ runs, including untimed and abandoned (!) runs, so you'll finally know just how many times you attempted to time that specific key.
 
-KeyCount also provides some basic stats that you can filter through, giving you valuable insights into your performance. This data is stored for all of your characters (but of course you can also just check one character).
+KeyCount also provides some basic stats that you can filter through, giving you valuable insights into your performance. This data is stored for all of the characters you run keys on.
 
-This addon is still in beta development, but you can already download it from curse: https://www.curseforge.com/wow/addons/keycount
+This addon is still in beta development (the first stable release should be up soon), but you can already download it from curse: https://www.curseforge.com/wow/addons/keycount or wago: https://addons.wago.io/addons/keycount/versions?stability=beta
 
 ### Current features of KeyCount:
-    - Effortless Data Tracking: Data recording starts when the timer for the dungeon starts. You can safely reload or walk in and out of the dungeon during the key.
-    - Data: Current recorded data includes party members, affixes, deaths per party member and time to complete. This will be expanded in the future.
+    - Effortless Data Tracking: Data recording starts when the timer for the dungeon starts, and ends when players leave the party, reset the dungeon, or finish the key. You can safely reload or walk in and out of the dungeon during the key.
+    - Data: Current recorded data includes party members, affixes, dps/hps/deaths per party member, key time, key level, and more.
     - User-Friendly Interface: You can check your stats through chat commands (/kch for help) or through the ingame GUI: https://imgur.com/a/XZnrKlu Example overall success rate: https://imgur.com/a/zei0YX4
+    - You can check data on every player that you have ran a key with. The addon provides statistics for each player per role and per season, all completely customisable. In addition, when you right-click a player (also works in LFG!) you can instantly see whether you have grouped with them before, what the results where, and click to open the GUI for that player.
+    - Beta: each player is also given a score that correlates to the amount of times you've grouped with them. If you have a 100% success rate with someone, but only grouped once, they will have a score of ~60. If you are 10 out of 10 with them the score will be around 80. A current limitation here is that the success rate for high keys is not that high, so the score for all players tends to converge around 50 providing no valuable information.
 
 ### Current limitations:
     - If a player leaves the party, data recording is stopped and the key is marked as failed.
@@ -37,9 +39,8 @@ This addon is still in beta development, but you can already download it from cu
 ## GUI
     - Add option tickboxes to show specific columns
       - Note, affixes, party, details stuff
-    - Make GUI side scrollable if it gets too large?
     - Create custom sorting functions for each column (currently sorts by string value)
-    - Add preference settings
+    - Add preference settings / options
 
 ## Notes section
     - At the end of a failed run ask player for a note on that run (popup?)
@@ -52,8 +53,7 @@ This addon is still in beta development, but you can already download it from cu
 ## Player score
     - Improve algorithm to include best/average key level
 
-## Data storage
-
 ## Bugs
     - Going out of dungeon disables the call to SetKeyFailed if someone leaves the group while you are outside (sometimes?)
     - Best key is not being stored correctly on player data (should only show completed key)
+    - Player lookup screen doesn't filter by season
