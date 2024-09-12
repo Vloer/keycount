@@ -121,7 +121,7 @@ local function getPlayerNameForMenu(owner, rootDescription, contextData)
     realm = contextData.server
     if name then
         --@debug
-        Log(string.format('getPlayerNameForMenu found in contextData: %s %s', name, realm))
+        Log(string.format('getPlayerNameForMenu found in contextData: %s %s', tostring(name), tostring(realm)))
         --@end-debug@
         return name, realm
     end

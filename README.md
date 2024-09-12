@@ -53,6 +53,10 @@ This addon is still in beta development (the first stable release should be up s
 ## Player score
     - Improve algorithm to include best/average key level
 
+## Features
+    - Add notification sound when a player that you have data for joins your group
+    - Localisation
+
 ## Bugs
     - Going out of dungeon disables the call to SetKeyFailed if someone leaves the group while you are outside (sometimes?)
     - Best key is not being stored correctly on player data (should only show completed key)
