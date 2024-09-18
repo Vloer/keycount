@@ -1,6 +1,6 @@
+- Fixed bug not showing data on dropdown for current season
+
+v0.10 changelog:
 - Updated for The War Within with new dungeon settings
 - Implemented season dropdown in the GUI
 - Added BigWigs packager
-
-v0.8 changelog:
-- Re-implemented dropdown menu for new patch changes

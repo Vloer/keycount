@@ -224,7 +224,7 @@ local function OnMenuShow(owner, rootDescription, contextData)
         createButtonNoData(rootDescription)
         return
     end
-    dataSeason = _data[KeyCount.defaults.season]
+    dataSeason = _data[KeyCount.defaults.dungeonDefault.season]
     if dataSeason then
         createButton(rootDescription, dataSeason, name, true)
     else
