@@ -497,9 +497,25 @@ end
 KeyCount.util.getLevelColor = function(level)
     local idx = 0
     if type(level) == "number" and level > 0 then
-        idx = math.floor(level / 5) + 1
+        idx = math.floor(level / 2.5) + 1
+        if idx >= 6 then
+            idx = 6
+        end
     end
     local r, g, b, hex = GetItemQualityColor(idx)
     local color = { r = r, g = g, b = b, a = 1 }
     return { color = color, hex = hex }
+end
+
+---Checks if there is a new member in your party. Excludes yourself and players below max level
+---@return string? MemberName Name of the new member that joined. Only returned if we haven't seen them yet
+KeyCount.util.findNewGroupMember = function()
+    for n=1, GetNumGroupMembers() do
+        local pname, prealm  = UnitName("Party"..n)
+        local plevel = UnitLevel("Party"..n)
+        if pname and not KeyCount.util.listContainsItem(pname, KeyCount.playersInGroup) then
+            table.insert(KeyCount.playersInGroup, pname)
+            return pname
+        end
+    end
 end

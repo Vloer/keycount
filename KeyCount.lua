@@ -6,8 +6,11 @@ KeyCount.filterkeys = {}
 KeyCount.guipreparedata = {}
 KeyCount.util = {}
 KeyCount.utilstats = {}
+KeyCount.utiltext = {}
 KeyCount.details = {}
 KeyCount.formatdata = {}
+KeyCount.playersInGroup = {}
+KeyCount.playersInGroupShownMessage = {}
 
 -- TODO player lookup shows wrong best dungeon - includes untimed dungeons
 -- TODO dungeons are being stored as previous season
@@ -64,7 +67,13 @@ function KeyCount:GROUP_LEFT(event)
 end
 
 function KeyCount:GROUP_ROSTER_UPDATE(event)
-    if not self.keystoneActive then return end
+    local newMember = KeyCount.util.findNewGroupMember()
+    if newMember then
+        KeyCount:ShowMessageNewMember(newMember)
+    end
+    if not self.keystoneActive then
+        return
+    end
     if KeyCount:CheckIfKeyFailed() then
         KeyCount:SetKeyFailed()
     end
@@ -85,14 +94,12 @@ end
 -- Register events
 function KeyCount:AddDungeonEvents()
     KeyCount:RegisterEvent("CHALLENGE_MODE_COMPLETED")
-    KeyCount:RegisterEvent("GROUP_ROSTER_UPDATE")
     KeyCount:RegisterEvent("GROUP_LEFT")
     KeyCount:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 end
 
 function KeyCount:RemoveDungeonEvents()
     KeyCount:UnregisterEvent("CHALLENGE_MODE_COMPLETED")
-    KeyCount:UnregisterEvent("GROUP_ROSTER_UPDATE")
     KeyCount:UnregisterEvent("GROUP_LEFT")
     KeyCount:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 end
@@ -101,6 +108,7 @@ KeyCount:RegisterEvent("PLAYER_LOGOUT")
 KeyCount:RegisterEvent("ADDON_LOADED")
 KeyCount:RegisterEvent("ZONE_CHANGED_NEW_AREA")
 KeyCount:RegisterEvent("CHALLENGE_MODE_START")
+KeyCount:RegisterEvent("GROUP_ROSTER_UPDATE")
 KeyCount:SetScript("OnEvent", KeyCount.OnEvent)
 
 function KeyCount:InitSelf()
@@ -112,14 +120,16 @@ function KeyCount:InitSelf()
     KeyCountDB.current = KeyCountDB.current or {}
     KeyCountDB.dungeons = KeyCountDB.dungeons or {}
     KeyCountDB.players = KeyCountDB.players or {}
-    C_Timer.After(2, KeyCount.InitDatabase)
-    C_Timer.After(3, KeyCount.InitPlayerList)
+    local dungeons = KeyCount:GetStoredDungeons()
+    C_Timer.After(2, KeyCount.InitDatabase, dungeons)
+    C_Timer.After(4, KeyCount.InitPlayerList, dungeons)
     if KeyCountDB.keystoneActive then self.keystoneActive = true else self.keystoneActive = false end
     if not table.equal(KeyCountDB.current, self.defaults.dungeonDefault) and self.keystoneActive then
         Log("Setting current dungeon to value from DB")
         table.copy(self.current, KeyCountDB.current)
     end
-    local updateMessage = "·Updated for The War Within. For the first few weeks the dropdown will also show the previous season·\n·Added improved 'Season' dropdown in the UI·"
+    local updateMessage =
+    "·Added sound/message notification when a player that you have data for joins your group·\n·Fixed bug where a message was shown twice after clean install·\n·Key level colors updated to match new scaling·"
     C_Timer.After(15, function() KeyCount.util.checkUpdateMessage(updateMessage) end)
     Log("Finished InitSelf")
 end
@@ -268,7 +278,8 @@ function KeyCount:SetTimeToComplete()
         timeLost = timeLost or 0
         if timeStart == 0 or timeEnd == 0 then
             local errorMsg = string.format(
-                "Error in collecting dungeon time. Dungeon time will not be saved. TimeStart (%s), TimeEnd (%s), TimeLost (%s). Please report the error to the author!", tostring(timeStart), tostring(timeEnd), tostring(timeLost))
+                "Error in collecting dungeon time. Dungeon time will not be saved. TimeStart (%s), TimeEnd (%s), TimeLost (%s). Please report the error to the author!",
+                tostring(timeStart), tostring(timeEnd), tostring(timeLost))
             printf(errorMsg, KeyCount.defaults.colors.chatError, true)
             Log(errorMsg)
             self.current.time = 0
@@ -312,8 +323,9 @@ function KeyCount:SaveDungeons()
     self.dungeons = {}
 end
 
-function KeyCount:InitDatabase()
-    local dungeons = KeyCount:GetStoredDungeons()
+---@param dungeons table?
+function KeyCount:InitDatabase(dungeons)
+    dungeons = dungeons or KeyCount:GetStoredDungeons()
     if dungeons then
         if KeyCount.util.checkIfPrintMessage() then
             printf("Checking database status", nil, true)
@@ -348,9 +360,10 @@ function KeyCount:InitDatabase()
     end
 end
 
-function KeyCount:InitPlayerList()
+---@param dungeons table?
+function KeyCount:InitPlayerList(dungeons)
+    dungeons = dungeons or KeyCount:GetStoredDungeons()
     local players = KeyCountDB.players or {}
-    local dungeons = KeyCount:GetStoredDungeons()
     local sessions = KeyCountDB.sessions or 0
     if KeyCount.util.checkIfPrintMessage() then
         printf("Checking player database", nil, true)
@@ -586,5 +599,22 @@ function KeyCount:SetDetailsData()
         end
         Log("Details data has been stored")
         self.details:resetCombat()
+    end
+end
+
+---Show popup message if new group member has keycount data available
+---@param member string
+function KeyCount:ShowMessageNewMember(member)
+    local players = KeyCount:GetStoredPlayers()
+    if not players then return end
+    local data = KeyCount.filterfunctions.searchPlayerGetData(member, players)
+    if data then
+        local dataSeason = data[KeyCount.defaults.dungeonDefault.season]
+        if dataSeason then
+            local datamsg = KeyCount.utiltext.getPlayerStatsString(dataSeason)
+            local msg = string.format('Found data for %s: %s', member, datamsg)
+            printf(msg, KeyCount.defaults.colors.chatWarning, true)
+            PlaySound(SOUNDKIT.TELL_MESSAGE)
+        end
     end
 end

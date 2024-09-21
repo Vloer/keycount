@@ -15,6 +15,7 @@ Defaults.lua
 SlashCommands.lua
 Util.lua
 UtilStats.lua
+UtilText.lua
 FilterFunctions.lua
 Gui.lua
 GuiPrepareData.lua

@@ -1,6 +1,9 @@
-- Fixed bug not showing data on dropdown for current season
+- Added sound/message notification when a player that you have data for joins your group
+- Fixed bug where a message was shown twice after clean install
+- Key level colors updated to match new dungeon scaling
 
 v0.10 changelog:
 - Updated for The War Within with new dungeon settings
 - Implemented season dropdown in the GUI
 - Added BigWigs packager
+- Fixed bug not showing data on dropdown for current season

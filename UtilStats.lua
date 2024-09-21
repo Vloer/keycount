@@ -1,5 +1,3 @@
-local stats = KeyCount.utilstats
-
 ---Get the highest timed key from a list of keys
 ---@param dungeons table
 ---@return table Key table with key name and key level

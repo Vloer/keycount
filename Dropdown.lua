@@ -42,12 +42,7 @@ local validTypes = {
     TARGET = true,
     WORLD_STATE_SCORE = true,
 }
--- TODO move to textutils
-local availablePlayerRoleAndIcon = {
-    DAMAGER = '|TInterface\\AddOns\\KeyCount_dev\\Icons\\roles:14:14:0:0:64:64:0:18:0:18|t',
-    HEALER = '|TInterface\\AddOns\\KeyCount_dev\\Icons\\roles:14:14:0:0:64:64:19:37:0:18|t',
-    TANK = '|TInterface\\AddOns\\KeyCount_dev\\Icons\\roles:14:14:0:0:64:64:38:56:0:18|t'
-}
+
 
 ---@param rootDescription ModifyMenuCallbackRootDescription
 ---@param contextData ModifyMenuCallbackContextData
@@ -121,52 +116,20 @@ local function getPlayerNameForMenu(owner, rootDescription, contextData)
     realm = contextData.server
     if name then
         --@debug
-        Log(string.format('getPlayerNameForMenu found in contextData: %s %s', tostring(name), tostring(realm)))
+        Log(string.format('getPlayerNameForMenu found in contextData: %s %s', name, realm))
         --@end-debug@
         return name, realm
     end
-end
-
--- TODO move to textutils
-local function getSuccessRateColor(rate)
-    local idx
-    if rate == 0 then
-        idx = 1
-    elseif rate == 100 then
-        idx = 5
-    else
-        idx = math.floor(rate / 20) + 1
-        if idx <= 0 then idx = 1 end
-    end
-    return KeyCount.defaults.colors.rating[idx].chat
-end
-
-local function getStringForRole(data)
-    local score = KeyCount.utilstats.calculatePlayerScore(data.intime, data.outtime, data.abandoned, data.median,
-        data.best)
-    local scoreString = string.format("%.0f", score)
-    local color = getSuccessRateColor(score)
-    return string.format('%s%s%s', color, scoreString, KeyCount.defaults.colors.reset)
 end
 
 local function getStringForRoleWithText(data)
     local score = KeyCount.utilstats.calculatePlayerScore(data.intime, data.outtime, data.abandoned, data.median,
         data.best)
     local scoreString = string.format('Timed %s of %s', data.intime, data.totalEntries)
-    local color = getSuccessRateColor(score)
+    local color = KeyCount.utiltext.getSuccessRateColor(score)
     return string.format('%s%s%s', color, scoreString, KeyCount.defaults.colors.reset)
 end
 
-local function getPlayerDropdownString(data)
-    local playerRoleString = ''
-    for role, icon in pairs(availablePlayerRoleAndIcon) do
-        local _data = data[role] or nil
-        if _data then
-            playerRoleString = playerRoleString .. icon .. getStringForRole(_data)
-        end
-    end
-    return playerRoleString
-end
 
 ---@param rootDescription ModifyMenuCallbackRootDescription
 ---@param data table
@@ -177,7 +140,7 @@ local function createButton(rootDescription, data, name, buttonPerRole)
         buttonPerRole = false
     end
     if buttonPerRole then
-        for role, icon in pairs(availablePlayerRoleAndIcon) do
+        for role, icon in pairs(KeyCount.utiltext.availablePlayerRoleAndIcon) do
             local _data = data[role] or nil
             if _data then
                 local roleString = icon .. getStringForRoleWithText(_data)
@@ -188,7 +151,7 @@ local function createButton(rootDescription, data, name, buttonPerRole)
             end
         end
     else
-        local dropdownString = getPlayerDropdownString(data)
+        local dropdownString = KeyCount.utiltext.getPlayerStatsString(data)
         rootDescription:CreateButton(dropdownString, function()
             GUI:Init()
             KeyCount.gui:Show(KeyCount.gui.views.searchplayer.type, KeyCount.filterkeys.player.key, name)
@@ -235,7 +198,8 @@ local function OnMenuShow(owner, rootDescription, contextData)
     end
     if dataPreviousSeason then
         rootDescription:CreateDivider()
-        rootDescription:CreateTitle(string.format('%s season %s', addonName, KeyCount.defaults.enablePreviousSeason.season))
+        rootDescription:CreateTitle(string.format('%s season %s', addonName,
+            KeyCount.defaults.enablePreviousSeason.season))
         createButton(rootDescription, dataPreviousSeason, name, true)
     end
 end

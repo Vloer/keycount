@@ -2,20 +2,6 @@ local function rgb(tbl)
     return KeyCount.util.convertRgb(tbl)
 end
 
----Get role image
----@param role string Role name
----@return string R Stringified image or empty string
-local function getRoleIcon(role)
-    if role == "DAMAGER" then
-        return "|TInterface\\AddOns\\KeyCount\\Icons\\roles:14:14:0:0:64:64:0:18:0:18|t"
-    elseif role == "HEALER" then
-        return "|TInterface\\AddOns\\KeyCount\\Icons\\roles:14:14:0:0:64:64:19:37:0:18|t"
-    elseif role == "TANK" then
-        return "|TInterface\\AddOns\\KeyCount\\Icons\\roles:14:14:0:0:64:64:38:56:0:18|t"
-    end
-    return ""
-end
-
 ---Retrieve class and role from the dungeon party data for the player. Returns empty strings if player can't be found in party (bug)
 ---@param dungeon table Dungeon data
 ---@return string class Class name
@@ -42,7 +28,7 @@ local function getPlayerRoleAndColor(class, role)
         color = { r = tbl.r, g = tbl.g, b = tbl.b, a = 1 }
         colorHex = tbl.colorStr
     end
-    local roleIcon = getRoleIcon(role)
+    local roleIcon = KeyCount.utiltext.availablePlayerRoleAndIcon[role]
     return { color = color, hex = colorHex, roleIcon = roleIcon }
 end
 
@@ -310,7 +296,7 @@ local function prepareRowSearchPlayerDungeon(dungeon)
     local row = {}
     local season = dungeon.season
     local name = formatDungeonName(dungeon.name)
-    local nameWithRole = getRoleIcon(dungeon.role) .. name
+    local nameWithRole = KeyCount.utiltext.availablePlayerRoleAndIcon[dungeon.role] .. name
     local level = dungeon.level
     local levelColor = KeyCount.util.getLevelColor(level).color
     local result = dungeon.resultstring
