@@ -129,7 +129,7 @@ function KeyCount:InitSelf()
         table.copy(self.current, KeyCountDB.current)
     end
     local updateMessage =
-    "·Added sound/message notification when a player that you have data for joins your group·\n·Fixed bug where a message was shown twice after clean install·\n·Key level colors updated to match new scaling·"
+    "·Player lookup screen now supports filtering by season·"
     C_Timer.After(15, function() KeyCount.util.checkUpdateMessage(updateMessage) end)
     Log("Finished InitSelf")
 end

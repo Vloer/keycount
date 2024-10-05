@@ -1,3 +1,5 @@
+local next = next
+
 ---Get the highest timed key from a list of keys
 ---@param dungeons table
 ---@return table Key table with key name and key level
@@ -17,50 +19,51 @@ end
 ---Expects data to be in the format {SEASON1 = {role1, role2, ...}, SEASON2 = {role1, role2, ...}, ...}
 ---This function is used in KeyCount.utilstats.getPlayerData
 ---@param playerdata table Player data object
----@param role string Role to filter. Defaults to all
----@param season string Season to filter. Accepts 'all'. Defaults to current season
+---@param role? string Role to filter. Defaults to all
 ---@return table|nil T Reformatted table or nil if invalid playerdata object supplied
-local function getPlayerDataRoleSeason(playerdata, role, season)
-    if not playerdata or next(playerdata) == nil then return nil end
-    local seasondata = {}
+local function getPlayerDataRoleSeason(playerdata, role)
+    Log('getPlayerDataRoleSeason| Entering')
+    if next(playerdata) == nil then
+        Log('getPlayerDataRoleSeason| No season data supplied')
+        return nil
+    end
     local roledata = {}
-    local _season = season or KeyCount.defaults.dungeonDefault.season
     local _role = role or 'all'
-    if _season == "all" then
-        for _, v in pairs(playerdata) do
-            table.insert(seasondata, v)
-        end
-    else
-        table.insert(seasondata, playerdata[season])
-    end
-    if seasondata and next(seasondata) ~= nil then
-        for _, seasonEntry in ipairs(seasondata) do
-            if _role == "all" then
-                for currentRole, roleEntry in pairs(seasonEntry) do
-                    if not roledata[currentRole] then
-                        roledata[currentRole] = {}
-                    end
-                    table.insert(roledata[currentRole], roleEntry)
+    for season, seasonEntry in pairs(playerdata) do
+        KeyCount.util.printTableOnSameLine(seasonEntry, string.format('seasonEntry %s', season))
+        if _role == "all" then
+            for currentRole, roleEntry in pairs(seasonEntry) do
+                KeyCount.util.printTableOnSameLine(roleEntry, string.format('roleEntry %s', currentRole))
+                if not roledata[currentRole] then
+                    roledata[currentRole] = {}
                 end
-            else
-                if not roledata[_role] then
-                    roledata[_role] = {}
-                end
-                table.insert(roledata[_role], seasonEntry[_role])
+                table.insert(roledata[currentRole], roleEntry)
             end
+        else
+            if not roledata[_role] then
+                roledata[_role] = {}
+            end
+            table.insert(roledata[_role], seasonEntry[_role])
         end
     end
+    Log('getPlayerDataRoleSeason| Returning ' .. KeyCount.util.countKeysInTable(roledata) .. ' roles')
     return roledata
 end
 
 ---Helper function to combine player data per role over multiple seasons.
 ---This function is used in KeyCount.utilstats.getPlayerData
----@param roledata table Data table containing all player data seperated by role
+---@param roledata table Data table containing all player data separated by role
 ---@param skipDungeons boolean|nil Only returns player data. Defaults to returning player and dungeon dat
----@return table|nil, table|nil T [1] Combined table [2] List of all dungeons for the player. Nil for both if invalid data object supplied
+---@return table, table T [1] Combined table [2] List of all dungeons for the player. Default return values are empty tables
 local function combinePlayerDataPerRole(roledata, skipDungeons)
-    if not roledata or next(roledata) == nil then return nil, nil end
-    if not skipDungeons then skipDungeons = false end
+    Log('combinePlayerDataPerRole| Entering')
+    if next(roledata) == nil then
+        Log('combinePlayerDataPerRole| No role data supplied')
+        return {}, {}
+    end
+    if not skipDungeons then
+        skipDungeons = false
+    end
     local dungeonsAll = {}
     local combinedData = {}
     for roleName, roleData in pairs(roledata) do
@@ -76,7 +79,9 @@ local function combinePlayerDataPerRole(roledata, skipDungeons)
         local dungeon_ids_seen = {} -- Make sure not to store duplicates (shouldn't be possible)
         local playerClass = ""
         local playerName = ""
+        KeyCount.util.printTableOnSameLine(roleData, string.format('roleData %s', roleName))
         for _, seasonEntry in ipairs(roleData) do
+            KeyCount.util.printTableOnSameLine(seasonEntry, string.format('seasonEntry %s', roleName))
             totalEntries = totalEntries + seasonEntry["totalEntries"]
             intime = intime + seasonEntry["intime"]
             outtime = outtime + seasonEntry["outtime"]
@@ -114,6 +119,10 @@ local function combinePlayerDataPerRole(roledata, skipDungeons)
             name = playerName,
         }
     end
+    Log(string.format('combinePlayerDataPerRole| Returning %d role summaries and %d dungeons',
+        KeyCount.util.countKeysInTable(combinedData),
+        KeyCount.util.countKeysInTable(dungeonsAll)
+    ))
     return combinedData, dungeonsAll
 end
 
@@ -147,7 +156,7 @@ end
 
 function KeyCount.utilstats.printDungeonSuccessRate(tbl)
     for _, d in ipairs(tbl) do
-        local colorIdx = KeyCount.util.getColorIdx(d.successRate) 
+        local colorIdx = KeyCount.util.getColorIdx(d.successRate)
         local fmt = KeyCount.defaults.colors.rating[colorIdx].chat
         printf(string.format("%s: %.2f%% [%d/%d]", d.name, d.successRate, d.intime, d.intime + d.outtime + d.abandoned),
             fmt)
@@ -158,7 +167,7 @@ end
 ---@param player string Player name
 ---@param summary table All data (retrieved from getPlayerDataSummary)
 ---@param onlySummary boolean Only print the summary
----@param dungeons table|nil All dungeons
+---@param dungeons table? All dungeons
 function KeyCount.utilstats.printPlayerSuccessRate(player, summary, onlySummary, dungeons)
     onlySummary = onlySummary or false
     if dungeons and next(dungeons) ~= nil and not onlySummary then
@@ -431,14 +440,16 @@ function KeyCount.utilstats.getPlayerHps(data)
 end
 
 ---Retrieve the data of a single player for the 'searchplayer' view in the GUI
----@param player table Player data
----@param season string|nil Specify season to retrieve. Defaults to all seasons.
----@param role string|nil Specify for which role we want to retrieve data. Defaults to all roles
----@return table|nil T1, table|nil T2 [T1] stats of the player, [T2] all dungeon stats for the player
-function KeyCount.utilstats.getPlayerData(player, season, role)
-    local _season = season or "all"
-    local _role = KeyCount.util.formatRole(role) or "all"
-    local dataByRole = getPlayerDataRoleSeason(player, _role, _season) or {}
+---@param playerData table Player data
+---@return table? T1, table? T2 [T1] stats of the player, [T2] all dungeon stats for the player
+function KeyCount.utilstats.getPlayerData(playerData)
+    Log('getPlayerData| Entering')
+    KeyCount.util.printTableOnSameLine(playerData, 'playerData')
+    if next(playerData) == nil then
+        Log('getPlayerData| No player data supplied')
+        return nil, nil
+    end
+    local dataByRole = getPlayerDataRoleSeason(playerData) or {}
     local playerdata, allDungeons = combinePlayerDataPerRole(dataByRole)
     local finalDataOverview = {}
     local finalDataDungeons = {}
@@ -492,21 +503,23 @@ function KeyCount.utilstats.getPlayerData(player, season, role)
     local _r2 = finalDataDungeons
     if next(_r1) == nil then _r1 = nil end
     if next(_r2) == nil then _r2 = nil end
+    Log(string.format('getPlayerData| Returning %d rows of player data and %d dungeons',
+        KeyCount.util.countKeysInTable(_r1),
+        KeyCount.util.countKeysInTable(_r2)
+    ))
     return _r1, _r2
 end
 
 ---Retrieve the data summary of a single player. Returns counts and success rate per role
 ---@param player table All player data
----@param season string|nil Defaults to all seasons
----@param role string|nil Defaults to all roles
----@return table|nil T One row per role, nil if something went wrong
-function KeyCount.utilstats.getPlayerDataSummary(player, season, role)
+---@param role string? Defaults to all roles
+---@return table? T One row per role, nil if something went wrong
+function KeyCount.utilstats.getPlayerDataSummary(player, role)
     --@debug@
     Log('Starting getPlayerDataSummary')
     --@end-debug@
-    local _season = season or "all"
     local _role = KeyCount.util.formatRole(role) or "all"
-    local dataByRole = getPlayerDataRoleSeason(player, _role, _season) or {}
+    local dataByRole = getPlayerDataRoleSeason(player, _role) or {}
     local playerdata = combinePlayerDataPerRole(dataByRole, true)
     local finalDataOverview = {}
     if playerdata then

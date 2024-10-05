@@ -176,6 +176,7 @@ local function OnMenuShow(owner, rootDescription, contextData)
     if not name then
         return
     end
+
     rootDescription:CreateDivider()
     rootDescription:CreateTitle(addonName)
     local players = KeyCount:GetStoredPlayers()

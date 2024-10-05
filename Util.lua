@@ -519,3 +519,13 @@ KeyCount.util.findNewGroupMember = function()
         end
     end
 end
+
+---Count the amount of keys in a table that has k:v pairs instead of nameless entries.
+---@param t table?
+---@return number
+KeyCount.util.countKeysInTable = function(t)
+    if type(t) == "nil" then return 0 end
+    local count = 0
+    for _ in pairs(t) do count = count + 1 end
+    return count
+end

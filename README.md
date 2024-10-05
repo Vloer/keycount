@@ -23,41 +23,30 @@ This addon is still in beta development (the first stable release should be up s
     - There is no external database, so if you delete your SavedVariables folder your data is gone :(
 
 # TODO
-## Make sure addon does not reset in the following scenarios:
-    - Other player leaves and rejoins party during active challenge mode
-    - Other player leaves party but dungeon is still finished
+## Next in line
+  1. Implement dataclasses to clean up code
+  2. Add config/preferences panel
 
-## Do reset addon when:
-    - Player logs out and into another character
-      - Edge case: they need to send over mats so they log back in and continue the dungeon
-    - Log out indefinitely
+## New features
+- Add notes section
+  - At the end of a failed run ask player for a note on that run (popup?)
+  - Store note with the dungeon data
+  - Add 'notes' column to gui (with mouseover or side scrollable)
+- Improve death recording
+  - Register cause of death
+  - Register encounter at time of death (boss/trash) with timestamp
 
-## Improve death recording
-    - Register cause of death
-    - Register encounter at time of death (boss/trash) with timestamp
-
-## GUI
-    - Add option tickboxes to show specific columns
-      - Note, affixes, party, details stuff
-    - Create custom sorting functions for each column (currently sorts by string value)
-    - Add preference settings / options
-
-## Notes section
-    - At the end of a failed run ask player for a note on that run (popup?)
-    - Store note with the dungeon data
-    - Add 'notes' column to gui (with mouseover or side scrollable)
-
-## Data filter
-    - Enable multiple filters
-
-## Player score
-    - Improve algorithm to include best/average key level
-
-## Features
-    - Add notification sound when a player that you have data for joins your group
-    - Localisation
-
-## Bugs
-    - Going out of dungeon disables the call to SetKeyFailed if someone leaves the group while you are outside (sometimes?)
-    - Best key is not being stored correctly on player data (should only show completed key)
-    - Player lookup screen doesn't filter by season
+## Fixes / nice to have
+ - Improve player scoring algorithm
+ - Make sure addon does not reset in the following scenarios:
+  - Other player leaves and rejoins party during active challenge mode
+  - Other player leaves party but dungeon is still finished
+- Reset run when player relogs into different character
+- Reset run when player has logged out and key is no longer active upon login
+- Add GUI tickboxes per column
+- Add custom sorting functions for each column in GUI
+- Enable multiple data filters
+- Add localisation
+- Fix remaining bugs:    
+  - Going out of dungeon disables the call to SetKeyFailed if someone leaves the group while you are outside (sometimes?)
+  - Best key is not being stored correctly on player data (should only show completed key)

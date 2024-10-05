@@ -152,6 +152,9 @@ end
 
 --#region Create row data
 local function prepareRowList(dungeon)
+    --@debug@
+    KeyCount.util.printTableOnSameLine(dungeon, "prepareRowList")
+    --@end-debug@
     local row = {}
     local player = dungeon.player
     local name = formatDungeonName(dungeon.name)
@@ -166,9 +169,6 @@ local function prepareRowList(dungeon)
     local class, role = getClassAndRoleFromDungeon(dungeon)
     local p = getPlayerRoleAndColor(class, role)
     local playerString = p.roleIcon .. player
-    --@debug@
-    KeyCount.util.printTableOnSameLine(dungeon, "prepareRowList")
-    --@end-debug@
     table.insert(row, { value = playerString, color = p.color })
     table.insert(row, { value = name })
     table.insert(row, { value = level, color = KeyCount.util.getLevelColor(level).color })
@@ -182,6 +182,9 @@ local function prepareRowList(dungeon)
 end
 
 local function prepareRowRate(dungeon)
+    --@debug@
+    KeyCount.util.printTableOnSameLine(dungeon, "prepareRowRate")
+    --@end-debug@
     local row = {}
     local name = formatDungeonName(dungeon.name)
     local attempts = dungeon.totalEntries
@@ -193,9 +196,6 @@ local function prepareRowRate(dungeon)
     local best = dungeon.best
     local median = dungeon.median
     local dps = formatDps(dungeon.maxdps)
-    --@debug@
-    KeyCount.util.printTableOnSameLine(dungeon, "prepareRowRate")
-    --@end-debug@
     table.insert(row, { value = name })
     table.insert(row, { value = attempts })
     table.insert(row, { value = rateString, color = getSuccessRateColor(rate) })
@@ -211,6 +211,7 @@ end
 local function prepareRowGrouped(player)
     --@debug@
     Log("Preparing row for " .. player.name)
+    KeyCount.util.printTableOnSameLine(player, "prepareRowGrouped")
     --@end-debug@
     local row = {}
     local name = player.name
@@ -228,9 +229,6 @@ local function prepareRowGrouped(player)
     local hps = formatDps(player.maxhps)
     local p = getPlayerRoleAndColor(player.class, player.role)
     local playerString = p.roleIcon .. name
-    --@debug@
-    KeyCount.util.printTableOnSameLine(player, "prepareRowGrouped")
-    --@end-debug@
 
     table.insert(row, { value = playerString, color = p.color })
     table.insert(row, { value = playerScoreString, color = getSuccessRateColor(playerScore) })
@@ -350,6 +348,9 @@ local function prepareList(dungeons)
     local data = {}
     local numDungeons = #dungeons
     for i = numDungeons, 1, -1 do -- Sort by date descending
+        --@debug@
+        Log(string.format('Preparing dungeon %i', numDungeons - i + 1))
+        --@end-debug@
         local dungeon = dungeons[i]
         local noErrors, row = KeyCount.util.safeExec("PrepareRowList", prepareRowList, dungeon)
         data = insertDataIfNoErrors(noErrors, row, data, numDungeons - i + 1)
