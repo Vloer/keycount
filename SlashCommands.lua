@@ -79,6 +79,21 @@ function SlashCmdList.KEYCOUNT_FAIL(msg)
     KeyCount:SetKeyFailed()
 end
 
+SLASH_KEYCOUNT_SOUND1 = "/kcsound"
+function SlashCmdList.KEYCOUNT_SOUND(msg)
+    local setting, _ = KeyCount.util.parseMsg(msg)
+    local flag
+    if tostring(setting) == "1" then
+        flag = true
+    elseif tostring(setting) == "0" then
+        flag = false
+    else
+        printf("/kcsound usage: 1 to enable sound, 0 to disable sound (/kcsound 1 | /kcsound 0)", KeyCount.defaults.colors.chatWarning, true)
+        return
+    end
+    KeyCount:EnableSound(flag)
+end
+
 SLASH_KEYCOUNT_HELP1 = "/kchelp"
 SLASH_KEYCOUNT_HELP2 = "/kch"
 function SlashCmdList.KEYCOUNT_HELP(msg)
@@ -105,6 +120,9 @@ function SlashCmdList.KEYCOUNT_HELP(msg)
     printf(" ")
     printf(" [/kcfail]")
     printf(" Set the current dungeon run to 'abandoned'.", KeyCount.defaults.colors.chatWarning)
+    printf(" ")
+    printf(" [/kcsound]")
+    printf(" Enable (1) or disable (0) the sound that occurs when a player with known data joins your group.", KeyCount.defaults.colors.chatWarning)    
     printf(" ")
     printf(" [/kcp]  |  [/kcplayer]")
     printf(" Quickly look up a player's dungeon runs.", KeyCount.defaults.colors.chatWarning)
