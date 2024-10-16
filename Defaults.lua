@@ -152,7 +152,7 @@ local defaults = {
     seasons = seasons,
     maxlevel = 80,
     databaseCheckMessageFreq = 10,
-    enablePreviousSeason = {enabled = true, season = "Dragonflight-4"},
+    enablePreviousSeason = {enabled = false, season = "Dragonflight-4"},
     soundOnNewGroupMember = true
 }
 
