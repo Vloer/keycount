@@ -69,7 +69,6 @@ end
 function KeyCount:GROUP_ROSTER_UPDATE(event)
     local newMembers = KeyCount.util.findNewGroupMember()
     for _, member in ipairs(newMembers) do
-        print('checking ' .. tostring(member))
         if member then
             KeyCount:ShowMessageNewMember(member)
         end
@@ -503,9 +502,7 @@ function KeyCount:SaveAllPlayers(dungeons)
         msg = msg .. ": " .. amt .. " players added to the database"
         printf(msg, nil, true)
     else
-        print('checking')
         if KeyCount.util.checkIfPrintMessage() then
-            print('true')
             printf(msg, nil, true)
         end
     end
