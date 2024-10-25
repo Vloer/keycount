@@ -67,9 +67,12 @@ function KeyCount:GROUP_LEFT(event)
 end
 
 function KeyCount:GROUP_ROSTER_UPDATE(event)
-    local newMember = KeyCount.util.findNewGroupMember()
-    if newMember then
-        KeyCount:ShowMessageNewMember(newMember)
+    local newMembers = KeyCount.util.findNewGroupMember()
+    for _, member in ipairs(newMembers) do
+        print('checking ' .. tostring(member))
+        if member then
+            KeyCount:ShowMessageNewMember(member)
+        end
     end
     if not self.keystoneActive then
         return

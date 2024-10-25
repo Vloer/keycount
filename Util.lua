@@ -508,16 +508,18 @@ KeyCount.util.getLevelColor = function(level)
 end
 
 ---Checks if there is a new member in your party. Excludes yourself and players below max level
----@return string? MemberName Name of the new member that joined. Only returned if we haven't seen them yet
+---@return table PlayerNames Names of the new members that joined. Only returned if we haven't seen them yet
 KeyCount.util.findNewGroupMember = function()
+    local players = {}
     for n=1, GetNumGroupMembers() do
         local pname, prealm  = UnitName("Party"..n)
         local plevel = UnitLevel("Party"..n)
         if pname and not KeyCount.util.listContainsItem(pname, KeyCount.playersInGroup) then
             table.insert(KeyCount.playersInGroup, pname)
-            return pname
+            table.insert(players, pname)
         end
     end
+    return players
 end
 
 ---Count the amount of keys in a table that has k:v pairs instead of nameless entries.
