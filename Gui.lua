@@ -606,6 +606,7 @@ GUI.defaults = {
     viewOrder = { "filter", "rate", "grouped", "searchplayer" },
     seasonsDropdown = {
         All = "All",
+        [KeyCount.defaults.seasons.TheWarWithin[2]] = KeyCount.defaults.seasons.TheWarWithin[2],
         [KeyCount.defaults.seasons.TheWarWithin[1]] = KeyCount.defaults.seasons.TheWarWithin[1],
         [KeyCount.defaults.seasons.Dragonflight[4]] = KeyCount.defaults.seasons.Dragonflight[4],
         [KeyCount.defaults.seasons.Dragonflight[3]] = KeyCount.defaults.seasons.Dragonflight[3],
@@ -614,6 +615,7 @@ GUI.defaults = {
     },
     seasonsViewOrder = {
         "All",
+        KeyCount.defaults.seasons.TheWarWithin[2],
         KeyCount.defaults.seasons.TheWarWithin[1],
         KeyCount.defaults.seasons.Dragonflight[4],
         KeyCount.defaults.seasons.Dragonflight[3],

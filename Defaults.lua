@@ -21,7 +21,8 @@ local seasons = {
         "Dragonflight-4"
     },
     TheWarWithin = {
-        "TheWarWithin-1"
+        "TheWarWithin-1",
+        "TheWarWithin-2"
     }
 }
 local keyresult = {
@@ -62,18 +63,22 @@ local defaults = {
         WM = "Waycrest Manor",
         FALL = "Dawn of the Infinite: Galakrond's Fall",
         RISE = "Dawn of the Infinite: Murozond's Rise",
-        CM = "Cinderbrew Meaderly",
+        CM = "Cinderbrew Meadery",
         COT = "City of Threads",
-        DC = "Darkflame Cleft",
+        DFC = "Darkflame Cleft",
         ARAK = "Ara-Kara, City of Echoes",
-        SF = "Priory of the Sacred Flame",
+        PSF = "Priory of the Sacred Flame",
         DAWN = "The Dawnbreaker",
         ROOK = "The Rookery",
         SV = "The Stonevault",
         NW = "The Necrotic Wake",
         MISTS = "Mists of Tirna Scythe",
         SIEGE = "Siege of Boralus",
-        GB = "Grim Batol"
+        GB = "Grim Batol",
+        WORK = "Mechagon Workshop",
+        FLOOD = "Operation: Floodgate",
+        ML = "The Motherlode!!",
+        TOP = "Theater of Pain"
     },
     partymember = {
         role = "",
@@ -92,7 +97,7 @@ local defaults = {
     dungeonDefault = {
         uuid = "",
         version = 3,
-        season = seasons.TheWarWithin[1],
+        season = seasons.TheWarWithin[2],
         player = "",
         name = "",
         party = {},
@@ -152,7 +157,7 @@ local defaults = {
     seasons = seasons,
     maxlevel = 80,
     databaseCheckMessageFreq = 10,
-    enablePreviousSeason = {enabled = false, season = "Dragonflight-4"},
+    enablePreviousSeason = {enabled = false, season = "TheWarWithin-1"},
     soundOnNewGroupMember = true
 }
 

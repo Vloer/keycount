@@ -1,4 +1,4 @@
-- Disabled previous season automatically showing
+- Added new season dungeons
 
 v0.10 changelog:
 - Updated for The War Within with new dungeon settings
@@ -11,3 +11,4 @@ v0.10 changelog:
 - Updated dungeon abbreviations
 - Fixed player lookup bug - you can now filter by season
 - Added option to remove sound
+- Disabled previous season automatically showing
