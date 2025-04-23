@@ -75,10 +75,11 @@ local defaults = {
         MISTS = "Mists of Tirna Scythe",
         SIEGE = "Siege of Boralus",
         GB = "Grim Batol",
-        WORK = "Mechagon Workshop",
+        WORK = "Operation Mechagon: Workshop",
         FLOOD = "Operation: Floodgate",
         ML = "The Motherlode!!",
-        TOP = "Theater of Pain"
+        TOP = "Theater of Pain",
+        BREW = "Cinderbrew Meadery"
     },
     partymember = {
         role = "",
