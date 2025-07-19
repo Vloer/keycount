@@ -81,7 +81,7 @@ local defaults = {
         ML = "The Motherlode!!",
         TOP = "Theater of Pain",
         DOME = "Eco-Dome Al'dani",
-        HALLS = "Halls of Atonement",
+        HOA = "Halls of Atonement",
         STREETS = "Tazavesh: Streets of Wonder",
         GAMBIT = "Tazavesh: So'leah's Gambit"
     },
