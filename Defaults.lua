@@ -22,7 +22,8 @@ local seasons = {
     },
     TheWarWithin = {
         "TheWarWithin-1",
-        "TheWarWithin-2"
+        "TheWarWithin-2",
+        "TheWarWithin-3"
     }
 }
 local keyresult = {
@@ -78,7 +79,12 @@ local defaults = {
         WORK = "Mechagon Workshop",
         FLOOD = "Operation: Floodgate",
         ML = "The Motherlode!!",
-        TOP = "Theater of Pain"
+        TOP = "Theater of Pain",
+        DOME = "Eco-Dome Al'dani",
+        HALLS = "Halls of Atonement",
+        STREETS = "Tazavesh: Streets of Wonder",
+        GAMBIT = "Tazavesh: So'leah's Gambit",
+        DAWN = "The Dawnbreaker"
     },
     partymember = {
         role = "",
@@ -97,7 +103,7 @@ local defaults = {
     dungeonDefault = {
         uuid = "",
         version = 3,
-        season = seasons.TheWarWithin[2],
+        season = seasons.TheWarWithin[3],
         player = "",
         name = "",
         party = {},
@@ -157,7 +163,7 @@ local defaults = {
     seasons = seasons,
     maxlevel = 80,
     databaseCheckMessageFreq = 10,
-    enablePreviousSeason = {enabled = false, season = "TheWarWithin-1"},
+    enablePreviousSeason = {enabled = false, season = "TheWarWithin-2"},
     soundOnNewGroupMember = true
 }
 

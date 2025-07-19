@@ -1,3 +1,4 @@
+- Added TheWarWithin season 3 dungeons
 - Added new season dungeons
 
 v0.10 changelog:
