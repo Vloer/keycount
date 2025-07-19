@@ -83,8 +83,7 @@ local defaults = {
         DOME = "Eco-Dome Al'dani",
         HALLS = "Halls of Atonement",
         STREETS = "Tazavesh: Streets of Wonder",
-        GAMBIT = "Tazavesh: So'leah's Gambit",
-        DAWN = "The Dawnbreaker"
+        GAMBIT = "Tazavesh: So'leah's Gambit"
     },
     partymember = {
         role = "",
