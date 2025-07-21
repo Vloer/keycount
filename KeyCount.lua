@@ -131,7 +131,7 @@ function KeyCount:InitSelf()
         table.copy(self.current, KeyCountDB.current)
     end
     local updateMessage =
-    "·Updated for TWW season 2·"
+    "·Updated for TWW season 3·"
     C_Timer.After(15, function() KeyCount.util.checkUpdateMessage(updateMessage) end)
     Log("Finished InitSelf")
 end
