@@ -24,6 +24,16 @@ local seasons = {
         "TheWarWithin-1",
         "TheWarWithin-2",
         "TheWarWithin-3"
+    },
+    currentSeasonDungeonSet = {
+        "Ara-Kara, City of Echoes",
+        "The Dawnbreaker",
+        "Eco-Dome Al'dani",
+        "Operation: Floodgate",
+        "Tazavesh: So'leah's Gambit",
+        "Halls of Atonement",
+        "Priory of the Sacred Flame",
+        "Tazavesh: Streets of Wonder"
     }
 }
 local keyresult = {
@@ -80,7 +90,7 @@ local defaults = {
         FLOOD = "Operation: Floodgate",
         ML = "The Motherlode!!",
         TOP = "Theater of Pain",
-        DOME = "Eco-Dome Al'dani",
+        EDA = "Eco-Dome Al'dani",
         HOA = "Halls of Atonement",
         STREETS = "Tazavesh: Streets of Wonder",
         GAMBIT = "Tazavesh: So'leah's Gambit"

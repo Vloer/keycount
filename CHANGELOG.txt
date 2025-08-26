@@ -1,5 +1,4 @@
-- Added TheWarWithin season 3 dungeons
-- Added new season dungeons
+- Fixed previous season dungeons showing up in current season
 
 v0.10 changelog:
 - Updated for The War Within with new dungeon settings
@@ -13,3 +12,5 @@ v0.10 changelog:
 - Fixed player lookup bug - you can now filter by season
 - Added option to remove sound
 - Disabled previous season automatically showing
+- Added TheWarWithin season 3 dungeons
+- Added new season dungeons

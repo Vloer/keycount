@@ -179,6 +179,18 @@ local function cleanFilterArgs(key, value)
     return _key, value
 end
 
+---Checks if a dungeon is actually in the current season, regardless of what the dungeon's season is.
+---@param dungeon table Dungeon data
+---@return boolean
+local function dungeonIsInCurrentSeason(dungeon)
+    if not dungeon or not dungeon.season then return false end
+    local currentSeason = KeyCount.defaults.dungeonDefault.season
+    if dungeon.season ~= currentSeason then
+        return false
+    end
+    return KeyCount.util.listContainsItem(dungeon.name, KeyCount.defaults.seasons.currentSeasonDungeonSet)
+end
+
 ---Selects specified season data from dungeons
 ---@param seasons table Specified seasons {[season(str)]: enabled(bool)}
 ---@param dungeons table? All dungeons to filter from
@@ -210,10 +222,23 @@ function KeyCount.filterfunctions.selectSeasonDataDungeons(seasons, dungeons)
     --     Log('No seasons specified, using default: ' .. KeyCount.defaults.dungeonDefault.season)
     -- end
 
+    -- If we are selecting all seasons, we can return all dungeons
+    -- Due a release error in the TWW S3 update we have to check if the dungeon is actually in the current season
     local result = {}
     for _, dungeon in ipairs(dungeons) do
-        if seasons[dungeon.season] or selectedAllSeasons then
+        if selectedAllSeasons then
             table.insert(result, dungeon)
+        else
+            local dungeonSeasonIsSelected = seasons[dungeon.season]
+            if dungeonSeasonIsSelected then
+                if dungeon.season == KeyCount.defaults.dungeonDefault.season then
+                    if dungeonIsInCurrentSeason(dungeon) then
+                        table.insert(result, dungeon)
+                    end
+                else
+                    table.insert(result, dungeon)
+                end
+            end
         end
     end
 
@@ -254,13 +279,14 @@ function KeyCount.filterfunctions.selectSeasonDataPlayers(seasons, playerData)
     else
         for seasonInPlayerData, seasonData in pairs(playerData) do
             if KeyCount.util.listContainsItem(seasonInPlayerData, selectedSeasons) or selectedAllSeasons then
-                Log('selectSeasonDataPlayers| Adding data from season '..seasonInPlayerData)
+                Log('selectSeasonDataPlayers| Adding data from season ' .. seasonInPlayerData)
                 result[seasonInPlayerData] = seasonData
             end
         end
     end
 
-    Log(string.format('selectSeasonDataPlayers| Select seasons found data for %d seasons', KeyCount.util.countKeysInTable(result)))
+    Log(string.format('selectSeasonDataPlayers| Select seasons found data for %d seasons',
+    KeyCount.util.countKeysInTable(result)))
     if KeyCount.util.countKeysInTable(result) == 0 then
         if next(selectedSeasons) == nil then
             printf('No player data found because no seasons are selected!', KeyCount.defaults.colors.chatWarning, true)
