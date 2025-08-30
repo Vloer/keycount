@@ -185,10 +185,13 @@ end
 local function dungeonIsInCurrentSeason(dungeon)
     if not dungeon or not dungeon.season then return false end
     local currentSeason = KeyCount.defaults.dungeonDefault.season
+    local startDate = KeyCount.defaults.seasons.currentSeasonStartDate
     if dungeon.season ~= currentSeason then
         return false
     end
-    return KeyCount.util.listContainsItem(dungeon.name, KeyCount.defaults.seasons.currentSeasonDungeonSet)
+    local dungeonIsInCurrentSeasonDungeonSet = KeyCount.util.listContainsItem(dungeon.name, KeyCount.defaults.seasons.currentSeasonDungeonSet)
+    local dungeonDateIsInCurrentSeason = KeyCount.util.dateToTimestamp(dungeon.date.date) >= KeyCount.util.dateToTimestamp(startDate)
+    return dungeonIsInCurrentSeasonDungeonSet and dungeonDateIsInCurrentSeason
 end
 
 ---Selects specified season data from dungeons
@@ -234,6 +237,10 @@ function KeyCount.filterfunctions.selectSeasonDataDungeons(seasons, dungeons)
                 if dungeon.season == KeyCount.defaults.dungeonDefault.season then
                     if dungeonIsInCurrentSeason(dungeon) then
                         table.insert(result, dungeon)
+                    elseif dungeon.season == KeyCount.defaults.seasons.TheWarWithin[3] then
+                        -- TODO remove after TWW S3, temporary bugfix
+                        printf(string.format('Replacing season TheWarWithin-3 with TheWarWithin-2 for dungeon %s: %s', dungeon.name, tostring(dungeon.date.date)), KeyCount.defaults.colors.chatWarning, true)
+                        dungeon.season = KeyCount.defaults.seasons.TheWarWithin[2]
                     end
                 else
                     table.insert(result, dungeon)

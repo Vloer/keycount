@@ -34,7 +34,8 @@ local seasons = {
         "Halls of Atonement",
         "Priory of the Sacred Flame",
         "Tazavesh: Streets of Wonder"
-    }
+    },
+    currentSeasonStartDate = "2025-08-12"
 }
 local keyresult = {
     unknown = { value = 0, name = "Unknown" },

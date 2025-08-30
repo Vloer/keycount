@@ -375,6 +375,24 @@ KeyCount.util.normalizeDate = function(date)
     end
 end
 
+---Converts a date string (yyyy-mm-dd) to a timestamp (epoch time)
+---@param dateString string Formatted date string: yyyy-mm-dd
+---@return integer timestamp Epoch time
+KeyCount.util.dateToTimestamp = function(dateString)
+    local year, month, day = dateString:match("(%d+)-(%d+)-(%d+)")
+    if not year or not month or not day then return 0 end
+    local dateTable = {
+        year = tonumber(year),
+        month = tonumber(month),
+        day = tonumber(day),
+        hour = 0,
+        min = 0,
+        sec = 0,
+        isdst = false,
+    }
+    return time(dateTable)
+end
+
 ---Returns the date of the start of the week (adjusted for player locale)
 ---@return string StartOfWeek
 KeyCount.util.getStartOfWeekDate = function()

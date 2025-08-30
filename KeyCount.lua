@@ -131,7 +131,7 @@ function KeyCount:InitSelf()
         table.copy(self.current, KeyCountDB.current)
     end
     local updateMessage =
-    "·Fixed dungeons from previous season showing up in current season·"
+    "·Fixed dungeons from previous season showing up in current season. Note: a text message will show up once!·"
     C_Timer.After(15, function() KeyCount.util.checkUpdateMessage(updateMessage) end)
     Log("Finished InitSelf")
 end
